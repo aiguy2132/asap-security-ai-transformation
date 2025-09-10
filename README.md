@@ -10,6 +10,12 @@
 ---
 
 ## 0) At-a-glance
+## Homepage Progress
+
+**Almost Final Homepage**  
+![Homepage Screenshot](screenshots/homepage-almost-final.png)
+
+(Stay tuned for final version updates!)
 - **Phase 1 — Website foundation (Wix Studio):** modern design, service pages, Why Choose Us, Contact form + email automations.  
 - **Phase 2 — Automation:** CRM tagging, auto‑emails/SMS, calendar routing, quote intake.  
 - **Phase 3 — AI Agents:** support, lead qualification, knowledge answers; internal ops assistants.
