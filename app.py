@@ -7,6 +7,32 @@ import json
 import csv
 from io import StringIO
 
+import hmac
+
+# Password protection
+def check_password():
+    """Returns `True` if the user had the correct password."""
+    def password_entered():
+        """Checks whether a password entered by the user is correct."""
+        if hmac.compare_digest(st.session_state["password"], "FireProtect2025!"):
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]
+        else:
+            st.session_state["password_correct"] = False
+
+    if st.session_state.get("password_correct", False):
+        return True
+
+    st.text_input(
+        "🔒 Enter Password", type="password", on_change=password_entered, key="password"
+    )
+    if "password_correct" in st.session_state:
+        st.error("😕 Password incorrect")
+    return False
+
+if not check_password():
+    st.stop()
+
 # Set up the page
 st.set_page_config(page_title="Fire Protection Blueprint Analyzer", layout="wide")
 
