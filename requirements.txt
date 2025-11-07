@@ -1,0 +1,5 @@
+anthropic
+streamlit
+PyPDF2
+Pillow
+pdf2image
