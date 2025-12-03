@@ -815,3 +815,4 @@ TOTAL BID: ${total_bid:,.2f}
 if __name__ == "__main__":
     if check_password():
         main()
+# v3 font fix
