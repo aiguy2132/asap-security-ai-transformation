@@ -921,8 +921,8 @@ def main():
     
     if st.session_state['selected_trade'] is None:
         st.markdown("""
-        <p style='text-align: center; color: #888; font-size: 1.2rem; margin-bottom: 2rem;'>
-        What do you install?
+        <p style='text-align: center; background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 50%, #4f46e5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.4rem; font-weight: 600; margin-bottom: 2rem;'>
+        Agentic Bidding Software
         </p>
         """, unsafe_allow_html=True)
         
