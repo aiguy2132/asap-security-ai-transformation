@@ -524,15 +524,16 @@ def analyze_blueprint_page(client, image_data: bytes, trade_config: dict, page_n
 
 {trade_config["prompt_focus"]}
 
-Return JSON format:
+IMPORTANT: Return ONLY valid JSON, no other text. Use this exact format:
 {{
     "page_type": "floor plan/riser/schedule/detail/legend/other",
     "description": "Brief description of what this page shows",
-    "devices": {json.dumps(device_json, indent=2)},
+    "devices": {json.dumps(device_json)},
     "notes": "Any relevant notes"
 }}
 
-Be thorough - count EVERY device symbol you can identify. Check legends and schedules for quantities."""
+Be thorough - count EVERY device symbol you can identify. Check legends and schedules for quantities.
+Return ONLY the JSON object, nothing else."""
 
     try:
         response = client.messages.create(
@@ -554,12 +555,39 @@ Be thorough - count EVERY device symbol you can identify. Check legends and sche
             }]
         )
         
-        response_text = response.content[0].text
-        json_match = re.search(r'\{[\s\S]*\}', response_text)
+        response_text = response.content[0].text.strip()
+        
+        # Try to parse JSON - handle markdown code blocks
+        if "```json" in response_text:
+            json_match = re.search(r'```json\s*([\s\S]*?)\s*```', response_text)
+            if json_match:
+                response_text = json_match.group(1)
+        elif "```" in response_text:
+            json_match = re.search(r'```\s*([\s\S]*?)\s*```', response_text)
+            if json_match:
+                response_text = json_match.group(1)
+        
+        # Find JSON object - use non-greedy matching for nested braces
+        json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', response_text)
         if json_match:
-            return json.loads(json_match.group())
+            try:
+                result = json.loads(json_match.group())
+                # Ensure devices dict has integer values
+                if "devices" in result:
+                    for key in result["devices"]:
+                        try:
+                            result["devices"][key] = int(result["devices"][key])
+                        except (ValueError, TypeError):
+                            result["devices"][key] = 0
+                return result
+            except json.JSONDecodeError as e:
+                return {"error": f"JSON parse error: {e}", "raw": response_text}
         else:
-            return {"error": "Could not parse response", "raw": response_text}
+            # Last resort - try parsing the whole response
+            try:
+                return json.loads(response_text)
+            except:
+                return {"error": "Could not find JSON in response", "raw": response_text[:500]}
             
     except Exception as e:
         return {"error": str(e)}
@@ -746,9 +774,19 @@ def main():
                                 for device_type, count in result.get("devices", {}).items():
                                     if device_type in total_devices:
                                         total_devices[device_type] += count
+                            else:
+                                # Show error but continue
+                                st.warning(f"Page {page_num}: {result.get('error', 'Unknown error')}")
                     
                     status_text.text("✅ Analysis complete!")
                     progress_bar.progress(1.0)
+                    
+                    # Show quick summary
+                    total_found = sum(total_devices.values())
+                    if total_found > 0:
+                        st.success(f"Found {total_found} total devices across {len(page_results)} pages")
+                    else:
+                        st.warning("No devices detected. Try checking the Page-by-Page Breakdown for details.")
                     
                     st.session_state['analysis_results'] = {
                         "total_devices": total_devices,
