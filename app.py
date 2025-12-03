@@ -2,7 +2,7 @@
 BidSync AI v2.0 - Fire Protection Blueprint Analyzer
 Built for ASAP Security
 Multi-page PDF support with device detection
-v6 - Complete dark theme fix for Settings expander and data table
+v7 - Editable device counts and prices for bid accuracy
 """
 
 import streamlit as st
@@ -677,36 +677,84 @@ def main():
             
             st.markdown("---")
             
-            # Device Count Table
+            # Device Count - Editable
             st.markdown("### 📊 Device Count")
-            
-            device_data = []
-            prices = DEFAULT_PRICES
+            st.caption("✏️ Edit counts and prices as needed - AI estimates may need adjustment")
             
             device_mapping = {
-                "smoke_detectors": ("Smoke Detectors", "smoke_detector"),
-                "pull_stations": ("Pull Stations", "pull_station"),
-                "horn_strobes": ("Horn/Strobes", "horn_strobe"),
-                "strobes_only": ("Strobes Only", "strobe_only"),
-                "horns_speakers": ("Horns/Speakers", "horn_speaker"),
-                "sprinkler_heads": ("Sprinkler Heads", "sprinkler_head"),
-                "facp": ("Fire Alarm Control Panel", "facp"),
-                "annunciator": ("Annunciator Panels", "annunciator"),
-                "monitor_modules": ("Monitor Modules", "monitor_module"),
-                "relay_modules": ("Relay Modules", "relay_module")
+                "smoke_detectors": ("Smoke Detectors", "smoke_detector", 250),
+                "pull_stations": ("Pull Stations", "pull_station", 150),
+                "horn_strobes": ("Horn/Strobes", "horn_strobe", 175),
+                "strobes_only": ("Strobes Only", "strobe_only", 125),
+                "horns_speakers": ("Horns/Speakers", "horn_speaker", 150),
+                "sprinkler_heads": ("Sprinkler Heads", "sprinkler_head", 85),
+                "facp": ("Fire Alarm Control Panel", "facp", 3500),
+                "annunciator": ("Annunciator Panels", "annunciator", 1200),
+                "monitor_modules": ("Monitor Modules", "monitor_module", 125),
+                "relay_modules": ("Relay Modules", "relay_module", 125)
             }
             
-            for key, (display_name, price_key) in device_mapping.items():
-                count = total_devices.get(key, 0)
-                if count > 0 or key in ["smoke_detectors", "pull_stations", "horn_strobes", "sprinkler_heads", "facp", "annunciator", "monitor_modules", "relay_modules"]:
-                    device_data.append({
-                        "Device": display_name,
-                        "Count": count,
-                        "Unit $": f"${prices[price_key]}"
-                    })
+            # Initialize editable counts in session state if not exists
+            if 'editable_counts' not in st.session_state:
+                st.session_state['editable_counts'] = {}
+            if 'editable_prices' not in st.session_state:
+                st.session_state['editable_prices'] = {}
             
-            df = pd.DataFrame(device_data)
-            st.dataframe(df, use_container_width=True, hide_index=True)
+            # Create editable rows
+            edited_counts = {}
+            edited_prices = {}
+            
+            # Header row
+            col_device, col_count, col_price, col_total = st.columns([3, 1.5, 1.5, 1.5])
+            with col_device:
+                st.markdown("**Device**")
+            with col_count:
+                st.markdown("**Count**")
+            with col_price:
+                st.markdown("**Unit $**")
+            with col_total:
+                st.markdown("**Line Total**")
+            
+            st.markdown("---")
+            
+            # Device rows with editable inputs
+            for key, (display_name, price_key, default_price) in device_mapping.items():
+                ai_count = total_devices.get(key, 0)
+                
+                # Use session state to preserve edits, default to AI count
+                current_count = st.session_state['editable_counts'].get(key, ai_count)
+                current_price = st.session_state['editable_prices'].get(key, default_price)
+                
+                col_device, col_count, col_price, col_total = st.columns([3, 1.5, 1.5, 1.5])
+                
+                with col_device:
+                    st.markdown(f"{display_name}")
+                
+                with col_count:
+                    edited_counts[key] = st.number_input(
+                        f"count_{key}",
+                        min_value=0,
+                        value=current_count,
+                        key=f"count_{key}",
+                        label_visibility="collapsed"
+                    )
+                
+                with col_price:
+                    edited_prices[key] = st.number_input(
+                        f"price_{key}",
+                        min_value=0,
+                        value=current_price,
+                        key=f"price_{key}",
+                        label_visibility="collapsed"
+                    )
+                
+                with col_total:
+                    line_total = edited_counts[key] * edited_prices[key]
+                    st.markdown(f"**${line_total:,.2f}**")
+            
+            # Store edited values
+            st.session_state['editable_counts'] = edited_counts
+            st.session_state['editable_prices'] = edited_prices
             
             # Bid Calculation
             st.markdown("### 💰 Bid Calculation")
@@ -719,10 +767,10 @@ def main():
             with col3:
                 misc_cost = st.number_input("Misc $", min_value=0, value=0)
             
-            # Calculate totals
+            # Calculate totals using EDITED values
             material_cost = sum(
-                total_devices.get(key, 0) * prices[price_key]
-                for key, (_, price_key) in device_mapping.items()
+                edited_counts.get(key, 0) * edited_prices.get(key, default_price)
+                for key, (_, _, default_price) in device_mapping.items()
             )
             
             overhead_amount = material_cost * (overhead_pct / 100)
@@ -761,9 +809,19 @@ def main():
             col1, col2 = st.columns(2)
             
             with col1:
-                # CSV Export
-                export_df = pd.DataFrame(device_data)
-                export_df['Total'] = export_df['Count'] * export_df['Unit $'].str.replace('$', '').astype(int)
+                # CSV Export with edited values
+                export_data = []
+                for key, (display_name, _, default_price) in device_mapping.items():
+                    count = edited_counts.get(key, 0)
+                    price = edited_prices.get(key, default_price)
+                    if count > 0:
+                        export_data.append({
+                            "Device": display_name,
+                            "Count": count,
+                            "Unit Price": price,
+                            "Total": count * price
+                        })
+                export_df = pd.DataFrame(export_data)
                 csv = export_df.to_csv(index=False)
                 st.download_button(
                     "📊 Download CSV",
@@ -774,17 +832,18 @@ def main():
                 )
             
             with col2:
-                # Summary text export
+                # Summary text export with edited values
                 summary = f"""BidSync AI Analysis Report
 File: {uploaded_file.name}
 Pages Analyzed: {len(page_results)}
 
-DEVICE COUNTS:
+DEVICE COUNTS (Edited):
 """
-                for key, (display_name, _) in device_mapping.items():
-                    count = total_devices.get(key, 0)
+                for key, (display_name, _, default_price) in device_mapping.items():
+                    count = edited_counts.get(key, 0)
+                    price = edited_prices.get(key, default_price)
                     if count > 0:
-                        summary += f"- {display_name}: {count}\n"
+                        summary += f"- {display_name}: {count} @ ${price} = ${count * price:,.2f}\n"
                 
                 summary += f"""
 BID CALCULATION:
@@ -845,7 +904,7 @@ BID CALCULATION:
     
     # Footer
     st.markdown("---")
-    st.caption("⚡ BidSync AI v2.0 | Built for ASAP Security")
+    st.caption("⚡ BidSync AI v2.1 | Built for ASAP Security")
 
 # ============================================
 # RUN APPLICATION
@@ -853,4 +912,4 @@ BID CALCULATION:
 if __name__ == "__main__":
     if check_password():
         main()
-# v6 dark theme
+# v7 editable
