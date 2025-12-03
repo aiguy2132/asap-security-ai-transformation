@@ -60,18 +60,33 @@ TRADE_CONFIG = {
             "door_contacts": ("Door Contacts", 45),
             "access_panel": ("Access Control Panel", 2500),
         },
-        "prompt_focus": """Count ALL fire protection and life safety devices:
+        "prompt_focus": """Count ALL fire protection and life safety devices. 
 
-FIRE ALARM: Smoke detectors, heat detectors, pull stations, horn/strobes, strobes, 
-horns/speakers, duct detectors, FACP, annunciator, monitor modules, relay modules
+CRITICAL - DISTINGUISH BETWEEN:
 
-SPRINKLER: Sprinkler heads (count all), risers, FDC, flow switches, tamper switches
+SPRINKLER HEADS (circles on piping):
+- Simple circles connected to piping lines
+- On pages labeled "FP-" or "Sprinkler"  
+- Count as sprinkler_heads, NOT smoke detectors
 
-ELECTRICAL: 120VAC smoke/CO detectors, exit signs, emergency lights
+FIRE ALARM (labeled symbols):
+- Smoke detectors: Circle with "S" or "SD" inside
+- Pull stations: Square near exits with "PS"
+- Horn/strobes: "HS" symbol
+- FACP: Panel in electrical room
+- Monitor/Relay modules: "MM" or "RM"
 
-SECURITY: Cameras, card readers, door contacts, access control panels
+ELECTRICAL:
+- 120VAC smoke/CO: Residential-type, on electrical plans
+- Exit signs, emergency lights
 
-Count everything you can identify."""
+SECURITY:
+- Cameras, card readers, door contacts
+
+Check legends carefully. If unsure whether something is a sprinkler head or smoke detector, look at:
+1. Page title (Sprinkler vs Fire Alarm)
+2. Symbol label (S, SD, HS vs plain circle)
+3. Is it connected to piping?"""
     },
     
     "fire_alarm": {
@@ -93,19 +108,30 @@ Count everything you can identify."""
             "relay_modules": ("Relay Modules", 125),
             "door_holders": ("Magnetic Door Holders", 85),
         },
-        "prompt_focus": """Focus ONLY on FIRE ALARM devices:
-- Smoke detectors (addressable, photoelectric, ionization)
-- Heat detectors (fixed temp, rate-of-rise)
-- Manual pull stations
-- Horn/strobes, strobes, horns/speakers (notification devices)
-- Duct detectors
-- Beam detectors
-- Fire Alarm Control Panel (FACP)
-- Annunciator panels
-- Monitor modules, relay modules
-- Magnetic door holders
+        "prompt_focus": """Focus ONLY on FIRE ALARM devices. 
 
-IGNORE: Sprinkler heads, electrical panels, security devices, 120VAC smoke detectors"""
+CRITICAL: DO NOT count sprinkler heads! Sprinkler heads appear as:
+- Simple circles on ceiling/sprinkler plans
+- Connected to sprinkler piping lines
+- Pages labeled "FP-" or "Sprinkler" or "Fire Protection"
+- No letter designation inside the circle
+
+FIRE ALARM devices have these symbols (count ONLY these):
+- Smoke detectors: Circle with "S" or "SD" inside, or diamond with "S"
+- Heat detectors: Circle with "H" or "HD" inside
+- Pull stations: Square/rectangle symbol, often near exits, labeled "PS" or "MPS"
+- Horn/strobes: "HS" symbol, notification appliance
+- Strobes: "S" or strobe symbol on walls
+- Horns/speakers: "H/S" or speaker symbol
+- Duct detectors: Rectangle with "DD", in ductwork
+- FACP: Large panel symbol, usually in electrical room
+- Annunciator: Panel symbol near entrance
+- Monitor modules: "MM" or small square
+- Relay modules: "RM" or small square
+
+Look at the LEGEND on each page to identify correct symbols.
+If a page is labeled "Sprinkler" or "FP-" or shows piping with circles, those are SPRINKLER HEADS - do NOT count them as fire alarm.
+If you're unsure, count 0 rather than guessing."""
     },
     
     "sprinkler": {
@@ -123,18 +149,26 @@ IGNORE: Sprinkler heads, electrical panels, security devices, 120VAC smoke detec
             "inspectors_test": ("Inspector's Test", 125),
             "fire_pump": ("Fire Pump", 15000),
         },
-        "prompt_focus": """Focus ONLY on SPRINKLER/SUPPRESSION devices:
-- Sprinkler heads (pendant, upright, sidewall, concealed) - count ALL circles on sprinkler piping
-- Risers
-- PIV (Post Indicator Valve)
-- OS&Y valves
-- FDC (Fire Department Connection)
-- Flow switches
-- Tamper switches
+        "prompt_focus": """Focus ONLY on SPRINKLER/SUPPRESSION devices.
+
+SPRINKLER HEADS appear as:
+- Circles on ceiling/floor plans connected to piping
+- Pages labeled "FP-" or "Sprinkler" or "Fire Protection"
+- Count ALL circles connected to sprinkler piping lines
+- May be pendant, upright, sidewall, or concealed types
+
+Also count:
+- Risers (vertical pipe from main to floors)
+- PIV (Post Indicator Valve) - in yard/exterior
+- OS&Y valves (Outside Screw & Yoke)
+- FDC (Fire Department Connection) - exterior wall
+- Flow switches (on risers)
+- Tamper switches (on valves)
 - Inspector's test connections
 - Fire pumps
 
-IGNORE: Fire alarm devices, electrical, security"""
+DO NOT count fire alarm devices (smoke detectors, pull stations, horn/strobes).
+Look at page labels and legends to confirm you're on a sprinkler plan."""
     },
     
     "electrical": {
