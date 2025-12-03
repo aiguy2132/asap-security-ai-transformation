@@ -198,10 +198,50 @@ st.markdown("""
         font-weight: 500 !important;
     }
     
+    /* Password and text inputs specifically */
+    input[type="password"], input[type="text"] {
+        background: rgba(15, 52, 96, 0.95) !important;
+        color: #00d4ff !important;
+        border: 1px solid rgba(0, 212, 255, 0.4) !important;
+        caret-color: #00d4ff !important;
+    }
+    
+    /* All input placeholders */
+    input::placeholder {
+        color: rgba(0, 212, 255, 0.5) !important;
+    }
+    
     /* Number input specific styling */
     .stNumberInput > div > div > input {
         background: rgba(15, 52, 96, 0.95) !important;
         color: #00d4ff !important;
+    }
+    
+    /* File uploader - dark theme */
+    [data-testid="stFileUploader"] {
+        background: rgba(15, 52, 96, 0.6) !important;
+        border: 2px dashed rgba(0, 212, 255, 0.4) !important;
+        border-radius: 16px !important;
+    }
+    
+    [data-testid="stFileUploader"] * {
+        color: #00d4ff !important;
+    }
+    
+    [data-testid="stFileUploader"] button {
+        background: rgba(0, 212, 255, 0.2) !important;
+        color: #00d4ff !important;
+        border: 1px solid rgba(0, 212, 255, 0.4) !important;
+    }
+    
+    [data-testid="stFileUploader"] section {
+        background: transparent !important;
+    }
+    
+    /* Small text in file uploader */
+    [data-testid="stFileUploader"] small, 
+    [data-testid="stFileUploader"] span {
+        color: #a0c4d4 !important;
     }
     
     /* All text on dark background */
@@ -815,4 +855,3 @@ TOTAL BID: ${total_bid:,.2f}
 if __name__ == "__main__":
     if check_password():
         main()
-# v3 font fix
