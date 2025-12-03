@@ -1,7 +1,6 @@
 """
-ASAP Security Fire Protection Blueprint Analyzer
-Updated: November 24, 2025
-Now differentiates between electrical and fire alarm devices
+BidSync AI - Fire Protection Blueprint Analyzer
+Clean, modern interface with multi-page PDF support
 """
 
 import streamlit as st
@@ -11,221 +10,341 @@ import json
 from PIL import Image
 import io
 import pandas as pd
-from typing import Dict, List, Tuple
-import re
 from pdf2image import convert_from_bytes
-import PyPDF2
+import time
 
-# Page config
+# Page config - dark theme
 st.set_page_config(
-    page_title="ASAP Security - Fire Protection Blueprint Analyzer",
-    page_icon="🔥",
-    layout="wide"
+    page_title="BidSync AI - Blueprint Analyzer",
+    page_icon="⚡",
+    layout="centered",
+    initial_sidebar_state="collapsed"
 )
 
-# Password protection
+# Custom CSS for dark, sexy design
+st.markdown("""
+<style>
+    /* Import Google Font */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    
+    /* Global styles */
+    .stApp {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        font-family: 'Inter', sans-serif;
+    }
+    
+    /* Hide default hamburger menu and footer */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* Main container */
+    .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+        max-width: 900px;
+    }
+    
+    /* Headers */
+    h1, h2, h3 {
+        color: #ffffff !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Logo/Brand header */
+    .brand-header {
+        text-align: center;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+    
+    .brand-title {
+        font-size: 3rem;
+        font-weight: 700;
+        background: linear-gradient(90deg, #00d4ff, #7b2cbf, #ff6b6b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+    }
+    
+    .brand-subtitle {
+        color: #a0a0a0;
+        font-size: 1.1rem;
+        font-weight: 300;
+    }
+    
+    /* Cards */
+    .card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        backdrop-filter: blur(10px);
+    }
+    
+    .card-title {
+        color: #ffffff;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    /* Results table */
+    .results-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1rem 0;
+    }
+    
+    .results-table th {
+        background: rgba(0, 212, 255, 0.2);
+        color: #00d4ff;
+        padding: 12px 16px;
+        text-align: left;
+        font-weight: 600;
+        border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+    }
+    
+    .results-table td {
+        padding: 12px 16px;
+        color: #ffffff;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .results-table tr:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+    
+    /* Total row */
+    .total-row {
+        background: rgba(0, 212, 255, 0.1) !important;
+        font-weight: 600;
+    }
+    
+    .total-row td {
+        color: #00d4ff !important;
+        font-size: 1.1rem;
+    }
+    
+    /* Bid total */
+    .bid-total {
+        text-align: center;
+        padding: 2rem;
+        background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(123, 44, 191, 0.2));
+        border-radius: 16px;
+        margin-top: 1.5rem;
+    }
+    
+    .bid-label {
+        color: #a0a0a0;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .bid-amount {
+        color: #00d4ff;
+        font-size: 3rem;
+        font-weight: 700;
+    }
+    
+    /* Buttons */
+    .stButton > button {
+        background: linear-gradient(90deg, #00d4ff, #7b2cbf) !important;
+        color: white !important;
+        border: none !important;
+        padding: 0.75rem 2rem !important;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+        border-radius: 12px !important;
+        width: 100% !important;
+        transition: transform 0.2s, box-shadow 0.2s !important;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 10px 40px rgba(0, 212, 255, 0.3) !important;
+    }
+    
+    /* File uploader */
+    .stFileUploader {
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px dashed rgba(0, 212, 255, 0.3);
+        border-radius: 16px;
+        padding: 1rem;
+    }
+    
+    .stFileUploader:hover {
+        border-color: rgba(0, 212, 255, 0.6);
+    }
+    
+    /* Progress bar */
+    .stProgress > div > div {
+        background: linear-gradient(90deg, #00d4ff, #7b2cbf) !important;
+    }
+    
+    /* Input fields */
+    .stNumberInput input, .stTextInput input {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+        border-radius: 8px !important;
+    }
+    
+    /* Success/Info messages */
+    .stSuccess, .stInfo {
+        background: rgba(0, 212, 255, 0.1) !important;
+        color: #00d4ff !important;
+        border: 1px solid rgba(0, 212, 255, 0.3) !important;
+        border-radius: 12px !important;
+    }
+    
+    /* Expander */
+    .streamlit-expanderHeader {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border-radius: 12px !important;
+        color: white !important;
+    }
+    
+    /* Password input */
+    .stTextInput > div > div > input {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+    
+    /* Page analysis cards */
+    .page-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+    }
+    
+    .page-number {
+        color: #00d4ff;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    /* Divider */
+    hr {
+        border: none;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        margin: 2rem 0;
+    }
+    
+    /* Data editor styling */
+    .stDataFrame {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border-radius: 12px !important;
+    }
+    
+    /* Labels */
+    .stNumberInput label, .stTextInput label {
+        color: #a0a0a0 !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
 def check_password():
-    """Returns `True` if the user had the correct password."""
-    def password_entered():
-        """Checks whether a password entered by the user is correct."""
-        if st.session_state["password"] == "FireProtect2025!":
-            st.session_state["password_correct"] = True
-            del st.session_state["password"]  # don't store password
-        else:
-            st.session_state["password_correct"] = False
-
-    if "password_correct" not in st.session_state:
-        # First run, show input for password
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key="password"
-        )
+    """Simple password protection"""
+    if "authenticated" not in st.session_state:
+        st.session_state.authenticated = False
+    
+    if not st.session_state.authenticated:
+        st.markdown("""
+        <div class="brand-header">
+            <div class="brand-title">⚡ BidSync AI</div>
+            <div class="brand-subtitle">Fire Protection Blueprint Analyzer</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        password = st.text_input("Enter password to continue", type="password")
+        if password == "FireProtect2025!":
+            st.session_state.authenticated = True
+            st.rerun()
+        elif password:
+            st.error("Incorrect password")
         return False
-    elif not st.session_state["password_correct"]:
-        # Password not correct, show input + error
-        st.text_input(
-            "Password", type="password", on_change=password_entered, key="password"
-        )
-        st.error("😕 Password incorrect")
-        return False
-    else:
-        # Password correct
-        return True
+    return True
 
-def classify_device_type(text: str, page_context: str = "") -> str:
-    """
-    Classify if a device is electrical or fire alarm based on context
-    
-    Returns: 'electrical', 'fire_alarm', or 'both'
-    """
-    text = text.upper()
-    page_context = page_context.upper()
-    
-    # Electrical indicators
-    electrical_indicators = [
-        '120VAC', '120V', '120 VAC', '120 V',
-        '277V', '277VAC', '208V', '240V',
-        'ELECTRICAL PANEL', 'PANEL SCHEDULE',
-        'BRANCH CIRCUIT', 'RECEPTACLE',
-        'JUNCTION BOX', 'J-BOX',
-        'LINE VOLTAGE'
-    ]
-    
-    # Fire alarm indicators  
-    fire_alarm_indicators = [
-        'FACP', 'FIRE ALARM CONTROL PANEL',
-        'NAC', 'NOTIFICATION APPLIANCE CIRCUIT',
-        'SLC', 'SIGNALING LINE CIRCUIT',
-        'ADDRESSABLE', 'MODULE', 'MONITOR',
-        'PULL STATION', 'MANUAL STATION',
-        'HORN/STROBE', 'HORN STROBE',
-        'ANNUNCIATOR', 'DUCT DETECTOR',
-        'HEAT DETECTOR', 'BEAM DETECTOR',
-        'FIRE ALARM', 'FA-', 'CLASS B', 'CLASS A',
-        '24VDC', '24V DC', 'LOW VOLTAGE'
-    ]
-    
-    # Check drawing title
-    if 'ELECTRICAL' in page_context and 'FIRE ALARM' not in page_context:
-        electrical_weight = 2
-    elif 'FIRE ALARM' in page_context and 'ELECTRICAL' not in page_context:
-        fire_alarm_weight = 2
-    else:
-        electrical_weight = 0
-        fire_alarm_weight = 0
-    
-    # Count indicators
-    for indicator in electrical_indicators:
-        if indicator in text or indicator in page_context:
-            electrical_weight += 1
-    
-    for indicator in fire_alarm_indicators:
-        if indicator in text or indicator in page_context:
-            fire_alarm_weight += 1
-    
-    # Classify based on weights
-    if electrical_weight > 0 and fire_alarm_weight > 0:
-        return 'both'
-    elif fire_alarm_weight > electrical_weight:
-        return 'fire_alarm'
-    elif electrical_weight > 0:
-        return 'electrical'
-    else:
-        # Default to fire_alarm if no clear indicators
-        return 'fire_alarm'
 
-def analyze_blueprint_with_ai(image_data: bytes, detection_mode: str) -> Dict:
-    """
-    Analyze blueprint using Claude Vision API with device type filtering
+def analyze_page(image_data: bytes, api_key: str, page_num: int) -> dict:
+    """Analyze a single blueprint page"""
     
-    Args:
-        image_data: The blueprint image data
-        detection_mode: 'all', 'fire_alarm', or 'electrical'
-    """
-    
-    # Initialize Anthropic client
-    client = anthropic.Anthropic(api_key=st.session_state.get('api_key'))
-    
-    # Encode image
+    client = anthropic.Anthropic(api_key=api_key)
     base64_image = base64.b64encode(image_data).decode('utf-8')
     
-    # Adjust prompt based on detection mode
-    mode_instruction = ""
-    if detection_mode == 'fire_alarm':
-        mode_instruction = """
-        IMPORTANT: Only count devices that are part of the FIRE ALARM SYSTEM:
-        - Connected to Fire Alarm Control Panel (FACP)
-        - On NAC (Notification Appliance Circuits) or SLC (Signaling Line Circuits)
-        - Low voltage (24VDC) devices
-        - Has fire alarm symbols or labels
-        
-        DO NOT count:
-        - 120VAC smoke detectors (these are electrical, not fire alarm)
-        - Devices connected to electrical panels
-        - Line voltage devices
-        """
-    elif detection_mode == 'electrical':
-        mode_instruction = """
-        IMPORTANT: Only count ELECTRICAL devices:
-        - 120VAC smoke/CO detectors
-        - Devices connected to electrical panels
-        - Line voltage equipment
-        
-        DO NOT count:
-        - Fire alarm system devices
-        - Low voltage (24VDC) devices
-        - Devices connected to FACP
-        """
-    
-    prompt = f"""
-    Analyze this construction blueprint and extract fire protection/electrical equipment information.
-    
-    {mode_instruction}
-    
-    Please identify and count:
-    1. All smoke detectors (note if 120VAC electrical or fire alarm type)
-    2. Heat detectors
-    3. CO detectors (note if 120VAC electrical or fire alarm type) 
-    4. Pull stations
-    5. Horn/strobes
-    6. Sprinkler heads
-    7. Fire alarm control panels (FACP)
-    8. Annunciator panels
-    9. Any other fire safety devices
-    
-    For each device type found, provide:
-    - Quantity/count
-    - Type/model if visible
-    - Voltage if specified (120VAC = electrical, 24VDC = fire alarm)
-    - Circuit type if visible (NAC, SLC, electrical panel)
-    - Location/zone if indicated
-    
-    Also note:
-    - Drawing title and number
-    - Scale if shown
-    - Any relevant notes or specifications
-    
-    Return the information in this JSON format:
-    {{
-        "drawing_info": {{
-            "title": "drawing title",
-            "number": "drawing number",
-            "type": "electrical or fire_alarm or combined",
-            "scale": "scale if shown"
-        }},
-        "devices": [
-            {{
-                "device_type": "device name",
-                "quantity": number,
-                "system_type": "electrical or fire_alarm",
-                "model": "model if shown",
-                "voltage": "voltage if shown",
-                "circuit": "circuit type",
-                "locations": ["list of locations"]
-            }}
-        ],
-        "notes": ["any relevant notes"],
-        "total_counts": {{
-            "smoke_detectors_electrical": number,
-            "smoke_detectors_fire_alarm": number,
-            "heat_detectors": number,
-            "pull_stations": number,
-            "horn_strobes": number,
-            "sprinkler_heads": number
-        }}
-    }}
-    """
-    
+    prompt = """Analyze this fire protection/electrical blueprint page and count ALL devices you can see.
+
+Count these device types:
+1. Smoke Detectors (any type - addressable, photoelectric, ionization)
+2. Heat Detectors
+3. Duct Detectors  
+4. Pull Stations / Manual Stations
+5. Horn/Strobes (notification appliances)
+6. Strobes only
+7. Horns/Speakers only
+8. Sprinkler Heads
+9. Fire Alarm Control Panel (FACP)
+10. Annunciator panels
+11. Door Holders (magnetic)
+12. Monitor Modules
+13. Relay Modules
+14. CO Detectors
+15. Duct Smoke Detectors
+
+BE THOROUGH - count every single device symbol you can identify on this page.
+If you see a symbol repeated multiple times, count each instance.
+
+Look for common blueprint symbols:
+- Circles with "S" or "SD" = Smoke Detector
+- Circles with "H" or "HD" = Heat Detector
+- Squares with horn symbol = Horn/Strobe
+- Small circles in grid patterns = Sprinkler Heads
+- Diamond shapes = Pull Stations
+
+Return ONLY valid JSON in this exact format (no other text):
+{
+    "page_type": "floor plan" or "legend" or "cover" or "details" or "schedule",
+    "devices": {
+        "smoke_detectors": 0,
+        "heat_detectors": 0,
+        "duct_detectors": 0,
+        "pull_stations": 0,
+        "horn_strobes": 0,
+        "strobes": 0,
+        "horns_speakers": 0,
+        "sprinkler_heads": 0,
+        "facp": 0,
+        "annunciators": 0,
+        "door_holders": 0,
+        "monitor_modules": 0,
+        "relay_modules": 0,
+        "co_detectors": 0,
+        "duct_smoke_detectors": 0
+    },
+    "notes": "any relevant observations about this page"
+}"""
+
     try:
         response = client.messages.create(
             model="claude-sonnet-4-5-20250929",
-            max_tokens=4000,
+            max_tokens=2000,
             messages=[{
                 "role": "user",
                 "content": [
-                    {
-                        "type": "text",
-                        "text": prompt
-                    },
+                    {"type": "text", "text": prompt},
                     {
                         "type": "image",
                         "source": {
@@ -238,305 +357,393 @@ def analyze_blueprint_with_ai(image_data: bytes, detection_mode: str) -> Dict:
             }]
         )
         
-        # Extract JSON from response
         response_text = response.content[0].text
         
-        # Try to parse JSON
-        try:
-            # Find JSON in response
-            json_start = response_text.find('{')
-            json_end = response_text.rfind('}') + 1
-            if json_start >= 0 and json_end > json_start:
-                json_str = response_text[json_start:json_end]
-                result = json.loads(json_str)
-            else:
-                result = {"error": "No JSON found in response", "raw": response_text}
-        except json.JSONDecodeError:
-            result = {"error": "Failed to parse JSON", "raw": response_text}
-        
-        return result
-        
+        # Extract JSON
+        json_start = response_text.find('{')
+        json_end = response_text.rfind('}') + 1
+        if json_start >= 0 and json_end > json_start:
+            result = json.loads(response_text[json_start:json_end])
+            result['page_num'] = page_num
+            return result
+        else:
+            return {"error": "No JSON found", "page_num": page_num}
+            
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": str(e), "page_num": page_num}
+
+
+def process_pdf(pdf_bytes: bytes, max_pages: int = None) -> list:
+    """Convert PDF to list of images"""
+    try:
+        images = convert_from_bytes(pdf_bytes, dpi=120)
+        if max_pages:
+            images = images[:max_pages]
+        return images
+    except Exception as e:
+        st.error(f"PDF conversion failed: {e}")
+        return []
+
+
+def compress_image(img) -> bytes:
+    """Compress image for API"""
+    # Resize if needed
+    max_dim = 2000
+    if max(img.size) > max_dim:
+        ratio = max_dim / max(img.size)
+        new_size = tuple(int(dim * ratio) for dim in img.size)
+        img = img.resize(new_size, Image.LANCZOS)
+    
+    # Convert to RGB
+    if img.mode == 'RGBA':
+        img = img.convert('RGB')
+    
+    # Compress to JPEG
+    buffer = io.BytesIO()
+    img.save(buffer, format='JPEG', quality=75, optimize=True)
+    return buffer.getvalue()
+
 
 def main():
-    st.title("🔥 ASAP Security - Fire Protection Blueprint Analyzer")
-    st.markdown("**Enhanced Edition** - Now differentiates between Electrical and Fire Alarm devices")
+    # Brand header
+    st.markdown("""
+    <div class="brand-header">
+        <div class="brand-title">⚡ BidSync AI</div>
+        <div class="brand-subtitle">Fire Protection Blueprint Analyzer</div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Sidebar for settings
-    with st.sidebar:
-        st.header("⚙️ Settings")
-        
-        # API Key
+    # API Key (hidden in expander)
+    with st.expander("⚙️ Settings", expanded=False):
         api_key = st.text_input(
             "Anthropic API Key",
             type="password",
             value=st.session_state.get('api_key', ''),
-            help="Enter your Claude API key"
+            help="Your Claude API key"
         )
         if api_key:
             st.session_state['api_key'] = api_key
-        
-        st.divider()
-        
-        # Detection Mode
-        st.subheader("🎯 Detection Mode")
-        detection_mode = st.radio(
-            "Which devices to count?",
-            options=[
-                ('fire_alarm', '🚨 Fire Alarm Only'),
-                ('electrical', '⚡ Electrical Only'),
-                ('all', '📊 All Devices')
-            ],
-            format_func=lambda x: x[1],
-            help="Fire Alarm = FACP/NAC/SLC devices\nElectrical = 120VAC devices"
-        )
-        
-        st.info("""
-        **Fire Alarm:** Low voltage devices connected to FACP
-        **Electrical:** 120VAC devices on electrical circuits
-        """)
-        
-        st.divider()
-        
-        # Pricing Settings
-        st.subheader("💰 Unit Pricing")
-        
-        # Default prices with separate categories
-        st.caption("Fire Alarm Devices")
-        smoke_fa_price = st.number_input("Smoke Detector (Fire Alarm)", value=250, step=10)
-        heat_price = st.number_input("Heat Detector", value=200, step=10)
-        pull_price = st.number_input("Pull Station", value=150, step=10)
-        horn_strobe_price = st.number_input("Horn/Strobe", value=175, step=10)
-        
-        st.caption("Electrical Devices")  
-        smoke_elec_price = st.number_input("Smoke Detector (120VAC)", value=75, step=10)
-        co_elec_price = st.number_input("CO Detector (120VAC)", value=80, step=10)
-        
-        st.caption("Other")
-        sprinkler_price = st.number_input("Sprinkler Head", value=85, step=10)
-        
-        st.divider()
-        
-        # Overhead & Profit
-        overhead = st.slider("Overhead %", 0, 30, 10)
-        profit = st.slider("Profit %", 0, 50, 15)
     
-    # Main content area
-    st.header("📄 Upload Blueprint")
+    # Check for API key
+    if not st.session_state.get('api_key'):
+        st.info("👆 Enter your API key in Settings to get started")
+        return
+    
+    # Upload section
+    st.markdown("### 📄 Upload Blueprint")
     
     uploaded_file = st.file_uploader(
-        "Choose a blueprint file",
+        "Drop your PDF or image here",
         type=['pdf', 'png', 'jpg', 'jpeg'],
-        help="Upload a PDF or image file of the construction blueprint"
+        label_visibility="collapsed"
     )
     
-    if uploaded_file is not None and api_key:
-        st.success(f"✅ File uploaded: {uploaded_file.name}")
+    if uploaded_file:
+        st.success(f"✓ {uploaded_file.name} ({uploaded_file.size / 1_000_000:.1f} MB)")
         
-        # Process button
-        if st.button("🔍 Analyze Blueprint", type="primary"):
-            with st.spinner("🤖 AI analyzing blueprint..."):
+        # Page selection for PDFs
+        if uploaded_file.type == "application/pdf":
+            pdf_bytes = uploaded_file.read()
+            uploaded_file.seek(0)  # Reset for later
+            
+            # Get page count
+            try:
+                all_images = convert_from_bytes(pdf_bytes, dpi=50)  # Low DPI just for counting
+                total_pages = len(all_images)
+                st.info(f"📑 {total_pages} pages detected")
                 
-                # Handle PDF vs Image
-                if uploaded_file.type == "application/pdf":
-                    st.warning("PDF detected - analyzing first page only. For multi-page analysis, use separate images.")
-                    # Convert PDF to image
-                    try:
-                        pdf_bytes = uploaded_file.read()
-                        # Lower DPI for smaller file size
-                        images = convert_from_bytes(pdf_bytes, first_page=1, last_page=1, dpi=100)
-                        
-                        # Compress image to stay under 5MB limit
-                        img = images[0]
-                        
-                        # More aggressive resize (max dimension 2000px instead of 3000)
-                        max_dim = 2000
-                        if max(img.size) > max_dim:
-                            ratio = max_dim / max(img.size)
-                            new_size = tuple(int(dim * ratio) for dim in img.size)
-                            img = img.resize(new_size, Image.LANCZOS)
-                        
-                        # Convert to RGB if needed
-                        if img.mode == 'RGBA':
-                            img = img.convert('RGB')
-                        
-                        # Start with lower quality (70% instead of 85%)
-                        img_byte_arr = io.BytesIO()
-                        img.save(img_byte_arr, format='JPEG', quality=70, optimize=True)
-                        image_data = img_byte_arr.getvalue()
-                        
-                        # If still too large, go even lower
-                        if len(image_data) > 5_000_000:  # 5MB
-                            img_byte_arr = io.BytesIO()
-                            img.save(img_byte_arr, format='JPEG', quality=50, optimize=True)
-                            image_data = img_byte_arr.getvalue()
-                        
-                        # Final check - if STILL too large, resize more
-                        if len(image_data) > 5_000_000:
-                            max_dim = 1500
-                            ratio = max_dim / max(img.size)
-                            new_size = tuple(int(dim * ratio) for dim in img.size)
-                            img = img.resize(new_size, Image.LANCZOS)
-                            img_byte_arr = io.BytesIO()
-                            img.save(img_byte_arr, format='JPEG', quality=60, optimize=True)
-                            image_data = img_byte_arr.getvalue()
-                        
-                        # Show compressed size
-                        size_mb = len(image_data) / 1_000_000
-                        st.info(f"✅ PDF compressed to {size_mb:.2f}MB for analysis")
-                            
-                    except Exception as e:
-                        st.error(f"❌ PDF conversion failed: {str(e)}")
-                        st.info("Please try converting your PDF to an image (PNG/JPG) first.")
-                        return
-                else:
-                    # Process image - always convert to JPEG for API consistency
-                    image_data = uploaded_file.read()
-                    img = Image.open(io.BytesIO(image_data))
-                    
-                    # Resize if needed
-                    max_dim = 3000
-                    if max(img.size) > max_dim:
-                        ratio = max_dim / max(img.size)
-                        new_size = tuple(int(dim * ratio) for dim in img.size)
-                        img = img.resize(new_size, Image.LANCZOS)
-                    
-                    # Convert to RGB and JPEG
-                    if img.mode == 'RGBA':
-                        img = img.convert('RGB')
-                    
-                    # Determine quality based on original size
-                    quality = 70 if len(image_data) > 5_000_000 else 85
-                    
-                    img_byte_arr = io.BytesIO()
-                    img.save(img_byte_arr, format='JPEG', quality=quality, optimize=True)
-                    image_data = img_byte_arr.getvalue()
+                # Page range selection
+                col1, col2 = st.columns(2)
+                with col1:
+                    start_page = st.number_input("Start page", min_value=1, max_value=total_pages, value=1)
+                with col2:
+                    end_page = st.number_input("End page", min_value=1, max_value=total_pages, value=min(total_pages, 10))
                 
-                # Display image (works for both PDF and regular images now)
-                st.subheader("📐 Blueprint Preview")
-                st.image(image_data, use_column_width=True)
+                if end_page < start_page:
+                    end_page = start_page
+                    
+            except Exception as e:
+                st.error(f"Could not read PDF: {e}")
+                return
+        
+        # Analyze button
+        if st.button("🔍 Analyze Blueprint", use_container_width=True):
+            
+            results = []
+            all_devices = {
+                "smoke_detectors": 0,
+                "heat_detectors": 0,
+                "duct_detectors": 0,
+                "pull_stations": 0,
+                "horn_strobes": 0,
+                "strobes": 0,
+                "horns_speakers": 0,
+                "sprinkler_heads": 0,
+                "facp": 0,
+                "annunciators": 0,
+                "door_holders": 0,
+                "monitor_modules": 0,
+                "relay_modules": 0,
+                "co_detectors": 0,
+                "duct_smoke_detectors": 0
+            }
+            
+            if uploaded_file.type == "application/pdf":
+                # Multi-page PDF analysis
+                pdf_bytes = uploaded_file.read()
                 
-                # Analyze with AI (works for both PDF and regular images now)
-                result = analyze_blueprint_with_ai(image_data, detection_mode[0])
+                with st.spinner("Converting PDF..."):
+                    images = convert_from_bytes(pdf_bytes, dpi=120)
+                    selected_images = images[start_page-1:end_page]
                 
-                if "error" in result:
-                    st.error(f"❌ Analysis failed: {result['error']}")
-                    if "raw" in result:
-                        with st.expander("Show raw response"):
-                            st.text(result["raw"])
-                else:
-                    # Display results
-                    col1, col2 = st.columns(2)
-                        
-                    with col1:
-                        st.subheader("📊 Device Count")
-                        
-                        if "total_counts" in result:
-                            counts = result["total_counts"]
-                            
-                            # Show counts based on mode
-                            if detection_mode[0] in ['fire_alarm', 'all']:
-                                st.metric("🚨 Smoke Detectors (Fire Alarm)", 
-                                        counts.get("smoke_detectors_fire_alarm", 0))
-                                st.metric("🌡️ Heat Detectors", counts.get("heat_detectors", 0))
-                                st.metric("🔔 Pull Stations", counts.get("pull_stations", 0))
-                                st.metric("📢 Horn/Strobes", counts.get("horn_strobes", 0))
-                            
-                            if detection_mode[0] in ['electrical', 'all']:
-                                st.metric("⚡ Smoke Detectors (120VAC)", 
-                                        counts.get("smoke_detectors_electrical", 0))
-                            
-                            if detection_mode[0] == 'all':
-                                st.metric("💧 Sprinkler Heads", counts.get("sprinkler_heads", 0))
+                progress_bar = st.progress(0)
+                status_text = st.empty()
+                
+                for i, img in enumerate(selected_images):
+                    page_num = start_page + i
+                    status_text.text(f"Analyzing page {page_num} of {end_page}...")
+                    progress_bar.progress((i + 1) / len(selected_images))
                     
-                    with col2:
-                        st.subheader("💵 Cost Estimate")
-                        
-                        # Calculate costs
-                        total_cost = 0
-                        
-                        if "total_counts" in result:
-                            counts = result["total_counts"]
-                            
-                            if detection_mode[0] in ['fire_alarm', 'all']:
-                                total_cost += counts.get("smoke_detectors_fire_alarm", 0) * smoke_fa_price
-                                total_cost += counts.get("heat_detectors", 0) * heat_price
-                                total_cost += counts.get("pull_stations", 0) * pull_price
-                                total_cost += counts.get("horn_strobes", 0) * horn_strobe_price
-                            
-                            if detection_mode[0] in ['electrical', 'all']:
-                                total_cost += counts.get("smoke_detectors_electrical", 0) * smoke_elec_price
-                            
-                            if detection_mode[0] == 'all':
-                                total_cost += counts.get("sprinkler_heads", 0) * sprinkler_price
-                        
-                        # Add overhead and profit
-                        subtotal = total_cost
-                        overhead_amount = subtotal * (overhead / 100)
-                        profit_amount = (subtotal + overhead_amount) * (profit / 100)
-                        final_total = subtotal + overhead_amount + profit_amount
-                        
-                        st.metric("📦 Material Cost", f"${subtotal:,.2f}")
-                        st.metric("🏢 Overhead", f"${overhead_amount:,.2f}")
-                        st.metric("💰 Profit", f"${profit_amount:,.2f}")
-                        st.metric("✅ **TOTAL BID**", f"${final_total:,.2f}")
+                    # Compress and analyze
+                    img_data = compress_image(img)
+                    result = analyze_page(img_data, st.session_state['api_key'], page_num)
+                    results.append(result)
                     
-                    # Detailed breakdown
-                    with st.expander("📋 Detailed Device Breakdown"):
-                        if "devices" in result:
-                            for device in result["devices"]:
-                                st.write(f"""
-                                **{device.get('device_type', 'Unknown')}**
-                                - Quantity: {device.get('quantity', 0)}
-                                - System: {device.get('system_type', 'Unknown')}
-                                - Voltage: {device.get('voltage', 'Not specified')}
-                                - Circuit: {device.get('circuit', 'Not specified')}
-                                """)
+                    # Aggregate counts
+                    if "devices" in result:
+                        for device, count in result["devices"].items():
+                            if device in all_devices:
+                                all_devices[device] += count
                     
-                    # Drawing info
-                    with st.expander("📐 Drawing Information"):
-                        if "drawing_info" in result:
-                            info = result["drawing_info"]
-                            st.write(f"""
-                            - **Title:** {info.get('title', 'Not found')}
-                            - **Number:** {info.get('number', 'Not found')}
-                            - **Type:** {info.get('type', 'Not detected')}
-                            - **Scale:** {info.get('scale', 'Not shown')}
-                            """)
-                        
-                        # Export functionality
-                        st.divider()
-                        st.subheader("📥 Export Results")
-                        
-                        # Create export data
-                        export_data = {
-                            "Project": uploaded_file.name,
-                            "Detection Mode": detection_mode[1],
-                            **{k.replace('_', ' ').title(): v for k, v in counts.items()},
-                            "Material Cost": subtotal,
-                            "Overhead": overhead_amount,
-                            "Profit": profit_amount,
-                            "Total Bid": final_total
-                        }
-                        
-                        df = pd.DataFrame([export_data])
-                        csv = df.to_csv(index=False)
-                        
-                        st.download_button(
-                            label="📊 Download as CSV",
-                            data=csv,
-                            file_name=f"estimate_{uploaded_file.name.split('.')[0]}.csv",
-                            mime="text/csv"
-                        )
+                    time.sleep(0.5)  # Rate limiting
+                
+                progress_bar.empty()
+                status_text.empty()
+                
+            else:
+                # Single image
+                with st.spinner("Analyzing..."):
+                    img = Image.open(uploaded_file)
+                    img_data = compress_image(img)
+                    result = analyze_page(img_data, st.session_state['api_key'], 1)
+                    results.append(result)
+                    
+                    if "devices" in result:
+                        all_devices = result["devices"]
+            
+            # Store results in session
+            st.session_state['results'] = all_devices
+            st.session_state['page_results'] = results
     
-    elif not api_key:
-        st.warning("⚠️ Please enter your Anthropic API key in the sidebar to begin")
+    # Display results if available
+    if 'results' in st.session_state:
+        st.markdown("---")
+        
+        devices = st.session_state['results']
+        
+        # Default pricing
+        default_prices = {
+            "smoke_detectors": 250,
+            "heat_detectors": 200,
+            "duct_detectors": 350,
+            "pull_stations": 150,
+            "horn_strobes": 175,
+            "strobes": 125,
+            "horns_speakers": 150,
+            "sprinkler_heads": 85,
+            "facp": 3500,
+            "annunciators": 1200,
+            "door_holders": 175,
+            "monitor_modules": 125,
+            "relay_modules": 125,
+            "co_detectors": 175,
+            "duct_smoke_detectors": 400
+        }
+        
+        # Nice device names
+        device_names = {
+            "smoke_detectors": "Smoke Detectors",
+            "heat_detectors": "Heat Detectors",
+            "duct_detectors": "Duct Detectors",
+            "pull_stations": "Pull Stations",
+            "horn_strobes": "Horn/Strobes",
+            "strobes": "Strobes Only",
+            "horns_speakers": "Horns/Speakers",
+            "sprinkler_heads": "Sprinkler Heads",
+            "facp": "Fire Alarm Control Panel",
+            "annunciators": "Annunciator Panels",
+            "door_holders": "Door Holders",
+            "monitor_modules": "Monitor Modules",
+            "relay_modules": "Relay Modules",
+            "co_detectors": "CO Detectors",
+            "duct_smoke_detectors": "Duct Smoke Detectors"
+        }
+        
+        st.markdown("### 📊 Device Count")
+        
+        # Build results table
+        table_data = []
+        for device_key, count in devices.items():
+            if count > 0:  # Only show devices with counts
+                table_data.append({
+                    "Device": device_names.get(device_key, device_key),
+                    "Count": count,
+                    "Unit Price": default_prices.get(device_key, 100),
+                    "key": device_key
+                })
+        
+        if table_data:
+            # Create editable dataframe
+            df = pd.DataFrame(table_data)
+            
+            # Editable table
+            edited_df = st.data_editor(
+                df[["Device", "Count", "Unit Price"]],
+                column_config={
+                    "Device": st.column_config.TextColumn("Device", disabled=True),
+                    "Count": st.column_config.NumberColumn("Count", min_value=0),
+                    "Unit Price": st.column_config.NumberColumn("Unit $", min_value=0, format="$%d")
+                },
+                hide_index=True,
+                use_container_width=True
+            )
+            
+            # Calculate totals
+            edited_df["Total"] = edited_df["Count"] * edited_df["Unit Price"]
+            subtotal = edited_df["Total"].sum()
+            
+            st.markdown("---")
+            
+            # Pricing adjustments
+            st.markdown("### 💰 Bid Calculation")
+            
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                overhead_pct = st.number_input("Overhead %", value=10, min_value=0, max_value=50)
+            with col2:
+                profit_pct = st.number_input("Profit %", value=15, min_value=0, max_value=50)
+            with col3:
+                misc_cost = st.number_input("Misc $", value=0, min_value=0)
+            
+            overhead = subtotal * (overhead_pct / 100)
+            profit = (subtotal + overhead) * (profit_pct / 100)
+            total_bid = subtotal + overhead + profit + misc_cost
+            
+            # Summary table
+            st.markdown(f"""
+| Description | Amount |
+|:---|---:|
+| **Material Cost** | ${subtotal:,.2f} |
+| Overhead ({overhead_pct}%) | ${overhead:,.2f} |
+| Profit ({profit_pct}%) | ${profit:,.2f} |
+| Miscellaneous | ${misc_cost:,.2f} |
+            """)
+            
+            # Big total
+            st.markdown(f"""
+            <div class="bid-total">
+                <div class="bid-label">Total Bid</div>
+                <div class="bid-amount">${total_bid:,.2f}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Export section
+            st.markdown("---")
+            st.markdown("### 📥 Export")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                # CSV Export
+                export_df = edited_df.copy()
+                export_df["Total"] = export_df["Count"] * export_df["Unit Price"]
+                
+                # Add summary rows
+                summary_data = [
+                    {"Device": "", "Count": "", "Unit Price": "", "Total": ""},
+                    {"Device": "SUBTOTAL", "Count": "", "Unit Price": "", "Total": subtotal},
+                    {"Device": f"Overhead ({overhead_pct}%)", "Count": "", "Unit Price": "", "Total": overhead},
+                    {"Device": f"Profit ({profit_pct}%)", "Count": "", "Unit Price": "", "Total": profit},
+                    {"Device": "TOTAL BID", "Count": "", "Unit Price": "", "Total": total_bid},
+                ]
+                summary_df = pd.DataFrame(summary_data)
+                
+                final_export = pd.concat([export_df, summary_df], ignore_index=True)
+                csv = final_export.to_csv(index=False)
+                
+                st.download_button(
+                    "📥 Download CSV",
+                    csv,
+                    file_name="bidsync_estimate.csv",
+                    mime="text/csv",
+                    use_container_width=True
+                )
+            
+            with col2:
+                # Text summary
+                lines = [f"- {row['Device']}: {row['Count']} @ ${row['Unit Price']} = ${row['Count'] * row['Unit Price']:,.2f}" 
+                        for _, row in edited_df.iterrows()]
+                
+                summary_text = f"""BidSync AI Estimate
+========================
+
+DEVICES:
+{chr(10).join(lines)}
+
+TOTALS:
+- Material Subtotal: ${subtotal:,.2f}
+- Overhead ({overhead_pct}%): ${overhead:,.2f}
+- Profit ({profit_pct}%): ${profit:,.2f}
+- Misc: ${misc_cost:,.2f}
+
+========================
+TOTAL BID: ${total_bid:,.2f}
+========================
+"""
+                st.download_button(
+                    "📋 Download Summary",
+                    summary_text,
+                    file_name="bidsync_summary.txt",
+                    mime="text/plain",
+                    use_container_width=True
+                )
+        
+        else:
+            st.warning("No devices detected on analyzed pages. Try selecting different pages.")
+        
+        # Page-by-page breakdown
+        if 'page_results' in st.session_state and len(st.session_state['page_results']) > 1:
+            with st.expander("📑 Page-by-Page Breakdown"):
+                for result in st.session_state['page_results']:
+                    if "error" in result:
+                        st.error(f"Page {result.get('page_num', '?')}: {result['error']}")
+                    else:
+                        page_num = result.get('page_num', '?')
+                        page_type = result.get('page_type', 'unknown')
+                        notes = result.get('notes', '')
+                        
+                        st.markdown(f"**Page {page_num}** _{page_type}_")
+                        if notes:
+                            st.caption(notes)
+                        
+                        # Show non-zero counts
+                        if "devices" in result:
+                            non_zero = {k: v for k, v in result["devices"].items() if v > 0}
+                            if non_zero:
+                                cols = st.columns(4)
+                                for i, (k, v) in enumerate(non_zero.items()):
+                                    cols[i % 4].metric(k.replace("_", " ").title(), v)
+                            else:
+                                st.caption("No devices on this page")
+                        st.markdown("---")
     
     # Footer
-    st.divider()
-    st.caption("Built for ASAP Security | Fire Protection Blueprint Analysis System v2.0")
-    st.caption("Now with Electrical vs Fire Alarm device differentiation")
+    st.markdown("""
+    <div style="text-align: center; padding: 2rem 0 1rem 0; color: #666;">
+        <small>⚡ BidSync AI v2.0 | Built for ASAP Security</small>
+    </div>
+    """, unsafe_allow_html=True)
+
 
 if __name__ == "__main__":
     if check_password():
