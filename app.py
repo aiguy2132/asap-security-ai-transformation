@@ -293,10 +293,32 @@ st.markdown("""
         padding: 8px 12px;
     }
     
-    /* Expander styling */
+    /* Expander styling - entire container */
     .streamlit-expanderHeader {
-        background: rgba(22, 33, 62, 0.8) !important;
-        color: #ffffff !important;
+        background: rgba(22, 33, 62, 0.95) !important;
+        color: #00d4ff !important;
+        border: 1px solid rgba(0, 212, 255, 0.3) !important;
+        border-radius: 12px 12px 0 0 !important;
+    }
+    
+    [data-testid="stExpander"] {
+        background: rgba(22, 33, 62, 0.95) !important;
+        border: 1px solid rgba(0, 212, 255, 0.3) !important;
+        border-radius: 12px !important;
+    }
+    
+    [data-testid="stExpander"] > div {
+        background: rgba(22, 33, 62, 0.95) !important;
+    }
+    
+    [data-testid="stExpander"] * {
+        color: #e8e8e8 !important;
+    }
+    
+    [data-testid="stExpander"] input {
+        background: rgba(15, 52, 96, 0.95) !important;
+        color: #00d4ff !important;
+        border: 1px solid rgba(0, 212, 255, 0.4) !important;
     }
     
     /* File uploader text */
@@ -312,11 +334,9 @@ st.markdown("""
         border-radius: 12px !important;
     }
     
-    /* Expander */
-    .streamlit-expanderHeader {
-        background: rgba(255, 255, 255, 0.05) !important;
-        border-radius: 12px !important;
-        color: white !important;
+    /* Password input label */
+    .stTextInput label {
+        color: #b0b0b0 !important;
     }
     
     /* Password input */
