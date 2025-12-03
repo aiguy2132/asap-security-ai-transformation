@@ -189,62 +189,81 @@ st.markdown("""
         background: linear-gradient(90deg, #00d4ff, #7b2cbf) !important;
     }
     
-    /* Input fields */
+    /* Input fields - dark with cyan text */
     .stNumberInput input, .stTextInput input {
-        background: rgba(255, 255, 255, 0.95) !important;
+        background: rgba(15, 52, 96, 0.95) !important;
         border: 1px solid rgba(0, 212, 255, 0.4) !important;
-        color: #1a1a2e !important;
+        color: #00d4ff !important;
         border-radius: 8px !important;
         font-weight: 500 !important;
     }
     
+    /* Number input specific styling */
+    .stNumberInput > div > div > input {
+        background: rgba(15, 52, 96, 0.95) !important;
+        color: #00d4ff !important;
+    }
+    
     /* All text on dark background */
     .stMarkdown, .stMarkdown p, .stText, p, span, label, .stCaption {
-        color: #ffffff !important;
+        color: #e8e8e8 !important;
     }
     
     /* Labels for inputs */
     .stNumberInput label, .stTextInput label, .stFileUploader label, .stSelectbox label {
-        color: #e0e0e0 !important;
+        color: #b0b0b0 !important;
         font-weight: 500 !important;
     }
     
-    /* Data editor / table styling */
+    /* Data editor / table styling - dark theme */
     .stDataFrame, [data-testid="stDataFrame"] {
-        background: rgba(255, 255, 255, 0.95) !important;
+        background: rgba(22, 33, 62, 0.95) !important;
         border-radius: 12px !important;
         overflow: hidden;
+        border: 1px solid rgba(0, 212, 255, 0.2) !important;
     }
     
     [data-testid="stDataFrame"] * {
-        color: #1a1a2e !important;
+        color: #00d4ff !important;
+        background: transparent !important;
+    }
+    
+    [data-testid="stDataFrame"] input {
+        background: rgba(15, 52, 96, 0.95) !important;
+        color: #00d4ff !important;
+        border: 1px solid rgba(0, 212, 255, 0.3) !important;
     }
     
     /* Table headers in data editor */
     [data-testid="stDataFrame"] th {
-        background: #16213e !important;
+        background: rgba(0, 212, 255, 0.15) !important;
         color: #00d4ff !important;
         font-weight: 600 !important;
     }
     
     /* Make markdown tables readable */
     .stMarkdown table {
-        background: rgba(255, 255, 255, 0.05);
+        background: rgba(22, 33, 62, 0.8);
         border-radius: 8px;
     }
     
     .stMarkdown table th, .stMarkdown table td {
-        color: #ffffff !important;
-        border-color: rgba(255, 255, 255, 0.1) !important;
+        color: #00d4ff !important;
+        border-color: rgba(0, 212, 255, 0.2) !important;
         padding: 8px 12px;
     }
     
-    /* Number input specific styling */
-    .stNumberInput > div > div > input {
-        background: rgba(255, 255, 255, 0.95) !important;
-        color: #1a1a2e !important;
+    /* Expander styling */
+    .streamlit-expanderHeader {
+        background: rgba(22, 33, 62, 0.8) !important;
+        color: #ffffff !important;
     }
     
+    /* File uploader text */
+    .stFileUploader, .stFileUploader * {
+        color: #e8e8e8 !important;
+    }
+
     /* Success/Info messages */
     .stSuccess, .stInfo {
         background: rgba(0, 212, 255, 0.1) !important;
