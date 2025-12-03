@@ -347,30 +347,30 @@ st.markdown("""
         color: #00d4ff !important;
     }
     
-    /* Trade selector buttons */
+    /* Trade selector buttons - shiny gradient */
     .stButton > button {
-        background: rgba(22, 33, 62, 0.9) !important;
-        border: 2px solid rgba(0, 212, 255, 0.4) !important;
-        border-radius: 12px !important;
-        padding: 1rem !important;
-        min-height: 80px !important;
+        background: linear-gradient(135deg, #1a3a8a 0%, #4c1d95 50%, #2563eb 100%) !important;
+        border: 2px solid rgba(139, 92, 246, 0.5) !important;
+        border-radius: 16px !important;
+        padding: 1.2rem !important;
+        min-height: 90px !important;
         transition: all 0.3s ease !important;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3) !important;
     }
     
     .stButton > button:hover {
-        border-color: #00d4ff !important;
-        transform: translateY(-2px) !important;
-        box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3) !important;
-        background: rgba(0, 212, 255, 0.15) !important;
+        border-color: #a855f7 !important;
+        transform: translateY(-4px) !important;
+        box-shadow: 0 8px 30px rgba(139, 92, 246, 0.5) !important;
+        background: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #4c1d95 100%) !important;
     }
     
     .stButton > button p, .stButton > button span {
-        background: linear-gradient(135deg, #00d4ff 0%, #a855f7 100%) !important;
-        -webkit-background-clip: text !important;
-        -webkit-text-fill-color: transparent !important;
-        background-clip: text !important;
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
         font-weight: 600 !important;
         font-size: 1.1rem !important;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
     }
     
     /* Primary action button (Analyze) */
@@ -379,11 +379,14 @@ st.markdown("""
         border: none !important;
     }
     
+    .stButton > button[kind="primary"]:hover {
+        background: linear-gradient(135deg, #00b4d8 0%, #6d28d9 100%) !important;
+    }
+    
     .stButton > button[kind="primary"] p, 
     .stButton > button[kind="primary"] span {
-        background: none !important;
-        -webkit-text-fill-color: white !important;
         color: white !important;
+        -webkit-text-fill-color: white !important;
     }
     
     /* Selectbox */
