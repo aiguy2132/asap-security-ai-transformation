@@ -191,10 +191,58 @@ st.markdown("""
     
     /* Input fields */
     .stNumberInput input, .stTextInput input {
-        background: rgba(255, 255, 255, 0.1) !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        color: white !important;
+        background: rgba(255, 255, 255, 0.95) !important;
+        border: 1px solid rgba(0, 212, 255, 0.4) !important;
+        color: #1a1a2e !important;
         border-radius: 8px !important;
+        font-weight: 500 !important;
+    }
+    
+    /* All text on dark background */
+    .stMarkdown, .stMarkdown p, .stText, p, span, label, .stCaption {
+        color: #ffffff !important;
+    }
+    
+    /* Labels for inputs */
+    .stNumberInput label, .stTextInput label, .stFileUploader label, .stSelectbox label {
+        color: #e0e0e0 !important;
+        font-weight: 500 !important;
+    }
+    
+    /* Data editor / table styling */
+    .stDataFrame, [data-testid="stDataFrame"] {
+        background: rgba(255, 255, 255, 0.95) !important;
+        border-radius: 12px !important;
+        overflow: hidden;
+    }
+    
+    [data-testid="stDataFrame"] * {
+        color: #1a1a2e !important;
+    }
+    
+    /* Table headers in data editor */
+    [data-testid="stDataFrame"] th {
+        background: #16213e !important;
+        color: #00d4ff !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Make markdown tables readable */
+    .stMarkdown table {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+    }
+    
+    .stMarkdown table th, .stMarkdown table td {
+        color: #ffffff !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+        padding: 8px 12px;
+    }
+    
+    /* Number input specific styling */
+    .stNumberInput > div > div > input {
+        background: rgba(255, 255, 255, 0.95) !important;
+        color: #1a1a2e !important;
     }
     
     /* Success/Info messages */
