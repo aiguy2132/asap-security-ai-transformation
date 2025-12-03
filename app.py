@@ -349,44 +349,33 @@ st.markdown("""
     
     /* Trade selector buttons - shiny gradient */
     .stButton > button {
-        background: linear-gradient(135deg, #1a3a8a 0%, #4c1d95 50%, #2563eb 100%) !important;
-        border: 2px solid rgba(139, 92, 246, 0.5) !important;
+        background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 50%, #4f46e5 100%) !important;
+        border: none !important;
         border-radius: 16px !important;
         padding: 1.2rem !important;
-        min-height: 90px !important;
+        min-height: 80px !important;
         transition: all 0.3s ease !important;
-        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3) !important;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4) !important;
     }
     
     .stButton > button:hover {
-        border-color: #a855f7 !important;
         transform: translateY(-4px) !important;
-        box-shadow: 0 8px 30px rgba(139, 92, 246, 0.5) !important;
-        background: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #4c1d95 100%) !important;
+        box-shadow: 0 8px 30px rgba(139, 92, 246, 0.6) !important;
+        background: linear-gradient(135deg, #22d3ee 0%, #a855f7 50%, #6366f1 100%) !important;
     }
     
     .stButton > button p, .stButton > button span {
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-        font-weight: 600 !important;
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        font-weight: 700 !important;
         font-size: 1.1rem !important;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
     }
     
     /* Primary action button (Analyze) */
-    .stButton > button[kind="primary"] {
-        background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%) !important;
-        border: none !important;
-    }
-    
-    .stButton > button[kind="primary"]:hover {
-        background: linear-gradient(135deg, #00b4d8 0%, #6d28d9 100%) !important;
-    }
-    
     .stButton > button[kind="primary"] p, 
     .stButton > button[kind="primary"] span {
-        color: white !important;
-        -webkit-text-fill-color: white !important;
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
     }
     
     /* Selectbox */
@@ -606,7 +595,7 @@ def main():
         for idx, (trade_key, trade_info) in enumerate(TRADE_CONFIG.items()):
             with cols[idx]:
                 if st.button(
-                    f"{trade_info['icon']}\n\n**{trade_info['name']}**",
+                    f"**{trade_info['name']}**",
                     key=f"trade_{trade_key}",
                     use_container_width=True,
                     help=trade_info['description']
