@@ -1,7 +1,7 @@
 """
-BidSync AI v11 - Fire Protection Blueprint Analyzer
+BidSync AI v12 - Fire Protection Blueprint Analyzer
 Built for ASAP Security
-v11 - Improved FACP/Annunciator/Module detection from riser diagrams
+v12 - Fix 120VAC vs fire alarm smoke detection + disconnect counting
 """
 
 import streamlit as st
@@ -221,20 +221,58 @@ Look at page labels and legends to confirm you're on a sprinkler plan."""
             "emergency_lights": ("Emergency Lights", 200),
             "exit_signs": ("Exit Signs", 125),
         },
-        "prompt_focus": """Focus ONLY on ELECTRICAL devices:
-- 120VAC smoke detectors (residential/line voltage type)
-- 120VAC CO detectors
-- Combo smoke/CO detectors
-- Receptacles
-- Switches
-- Junction boxes
-- Electrical panels
-- Disconnects
-- Lighting fixtures
-- Emergency lights
-- Exit signs
+        "prompt_focus": """Focus ONLY on ELECTRICAL (120VAC line voltage) devices.
 
-IGNORE: Low voltage fire alarm (24VDC), sprinkler, security"""
+CRITICAL - SMOKE DETECTOR DISTINCTION:
+DO NOT count fire alarm smoke detectors! Only count 120VAC residential type.
+
+120VAC SMOKE/CO (COUNT THESE):
+- Found in DWELLING UNITS (apartments, condos, bedrooms)
+- Hardwired to electrical circuits (shown on electrical branch circuits)
+- Symbol typically a simple circle with wire connection to circuit
+- Listed in electrical panel schedules
+- Usually 1-3 per dwelling unit in bedrooms/hallways
+- NOT labeled "addressable" or "SD"
+
+FIRE ALARM SMOKES (DO NOT COUNT - wrong trade):
+- Labeled "Addressable Smoke Detector" or "SD" or "S"
+- Connected to fire alarm SLC (signaling line circuit)
+- Found in corridors, common areas, lobbies
+- Part of building fire alarm system
+- Has horn/strobe or connects to notification devices
+- On pages labeled "Fire Alarm" or referenced to FACP
+
+RULE: If legend says "Addressable" = FIRE ALARM = DO NOT COUNT
+RULE: If in common corridor/lobby = likely FIRE ALARM = DO NOT COUNT
+RULE: If in bedroom/unit interior = likely 120VAC = COUNT
+
+RECEPTACLES:
+- Duplex outlets, GFI outlets
+- Count each outlet location (not each plug slot)
+
+SWITCHES:
+- Light switches, dimmers, 3-way switches
+- Count each switch location
+
+ELECTRICAL PANELS:
+- Main panels, sub-panels, load centers
+- Count panels shown in panel schedules or single-line diagrams
+
+DISCONNECTS:
+- HVAC disconnects at condensers/equipment (check ROOF PLANS)
+- Motor disconnects
+- Each piece of HVAC equipment needs a disconnect - count them on roof plans
+
+LIGHTING FIXTURES:
+- All light fixtures shown on reflected ceiling plans
+- Count symbols in fixture schedule
+
+EMERGENCY LIGHTS & EXIT SIGNS:
+- Battery backup lights
+- Illuminated exit signs (often have battery backup)
+- Found at exits, stairwells, corridors
+
+IGNORE: Fire alarm devices (24VDC), sprinkler, security, low voltage"""
     },
     
     "security": {
@@ -1076,7 +1114,7 @@ BID:
     
     # Footer
     st.markdown("---")
-    st.caption("⚡ BidSync AI v11 | Built for ASAP Security")
+    st.caption("⚡ BidSync AI v12 | Built for ASAP Security")
 
 # ============================================
 # RUN
