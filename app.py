@@ -27,6 +27,53 @@ st.set_page_config(
 # TRADE CONFIGURATIONS
 # ============================================
 TRADE_CONFIG = {
+    "all": {
+        "name": "All Trades",
+        "icon": "📋",
+        "description": "Show everything - fire alarm, sprinkler, electrical, security",
+        "devices": {
+            # Fire alarm
+            "smoke_detectors": ("Smoke Detectors", 250),
+            "heat_detectors": ("Heat Detectors", 200),
+            "pull_stations": ("Pull Stations", 150),
+            "horn_strobes": ("Horn/Strobes", 175),
+            "strobes_only": ("Strobes Only", 125),
+            "horns_speakers": ("Horns/Speakers", 150),
+            "duct_detectors": ("Duct Detectors", 350),
+            "facp": ("Fire Alarm Control Panel", 3500),
+            "annunciator": ("Annunciator Panel", 1200),
+            "monitor_modules": ("Monitor Modules", 125),
+            "relay_modules": ("Relay Modules", 125),
+            # Sprinkler
+            "sprinkler_heads": ("Sprinkler Heads", 85),
+            "risers": ("Risers", 1500),
+            "fdc": ("Fire Dept Connection", 650),
+            "flow_switch": ("Flow Switch", 275),
+            "tamper_switch": ("Tamper Switch", 150),
+            # Electrical
+            "smoke_detectors_120v": ("Smoke Detectors (120VAC)", 45),
+            "exit_signs": ("Exit Signs", 125),
+            "emergency_lights": ("Emergency Lights", 200),
+            # Security
+            "cameras": ("Security Cameras", 450),
+            "card_readers": ("Card Readers", 350),
+            "door_contacts": ("Door Contacts", 45),
+            "access_panel": ("Access Control Panel", 2500),
+        },
+        "prompt_focus": """Count ALL fire protection and life safety devices:
+
+FIRE ALARM: Smoke detectors, heat detectors, pull stations, horn/strobes, strobes, 
+horns/speakers, duct detectors, FACP, annunciator, monitor modules, relay modules
+
+SPRINKLER: Sprinkler heads (count all), risers, FDC, flow switches, tamper switches
+
+ELECTRICAL: 120VAC smoke/CO detectors, exit signs, emergency lights
+
+SECURITY: Cameras, card readers, door contacts, access control panels
+
+Count everything you can identify."""
+    },
+    
     "fire_alarm": {
         "name": "Fire Alarm",
         "icon": "🚨",
@@ -300,19 +347,43 @@ st.markdown("""
         color: #00d4ff !important;
     }
     
-    /* Buttons */
+    /* Trade selector buttons */
     .stButton > button {
-        background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 8px !important;
-        font-weight: 600 !important;
-        padding: 0.5rem 2rem !important;
+        background: rgba(22, 33, 62, 0.9) !important;
+        border: 2px solid rgba(0, 212, 255, 0.4) !important;
+        border-radius: 12px !important;
+        padding: 1rem !important;
+        min-height: 80px !important;
+        transition: all 0.3s ease !important;
     }
     
     .stButton > button:hover {
+        border-color: #00d4ff !important;
         transform: translateY(-2px) !important;
-        box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4) !important;
+        box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3) !important;
+        background: rgba(0, 212, 255, 0.15) !important;
+    }
+    
+    .stButton > button p, .stButton > button span {
+        background: linear-gradient(135deg, #00d4ff 0%, #a855f7 100%) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        background-clip: text !important;
+        font-weight: 600 !important;
+        font-size: 1.1rem !important;
+    }
+    
+    /* Primary action button (Analyze) */
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%) !important;
+        border: none !important;
+    }
+    
+    .stButton > button[kind="primary"] p, 
+    .stButton > button[kind="primary"] span {
+        background: none !important;
+        -webkit-text-fill-color: white !important;
+        color: white !important;
     }
     
     /* Selectbox */
@@ -527,7 +598,7 @@ def main():
         """, unsafe_allow_html=True)
         
         # Trade selection cards
-        cols = st.columns(5)
+        cols = st.columns(6)
         
         for idx, (trade_key, trade_info) in enumerate(TRADE_CONFIG.items()):
             with cols[idx]:
