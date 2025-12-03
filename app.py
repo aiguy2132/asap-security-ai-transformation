@@ -1,7 +1,7 @@
 """
-BidSync AI v2.1 - Fire Protection Blueprint Analyzer
+BidSync AI v11 - Fire Protection Blueprint Analyzer
 Built for ASAP Security
-v8 - Trade-based UX: Select your trade, see only what matters
+v11 - Improved FACP/Annunciator/Module detection from riser diagrams
 """
 
 import streamlit as st
@@ -73,8 +73,9 @@ FIRE ALARM (labeled symbols):
 - Smoke detectors: Circle with "S" or "SD" inside
 - Pull stations: Square near exits with "PS"
 - Horn/strobes: "HS" symbol
-- FACP: Panel in electrical room
-- Monitor/Relay modules: "MM" or "RM"
+- FACP: Main panel (ONE per building typically)
+- FARA/Annunciator: Remote display panel - count as annunciator NOT facp
+- Monitor/Relay modules: "MM", "RM", or "ER" symbols
 
 ELECTRICAL:
 - 120VAC smoke/CO: Residential-type, on electrical plans
@@ -83,10 +84,7 @@ ELECTRICAL:
 SECURITY:
 - Cameras, card readers, door contacts
 
-Check legends carefully. If unsure whether something is a sprinkler head or smoke detector, look at:
-1. Page title (Sprinkler vs Fire Alarm)
-2. Symbol label (S, SD, HS vs plain circle)
-3. Is it connected to piping?"""
+Check legends and RISER DIAGRAMS carefully for panel and module counts."""
     },
     
     "fire_alarm": {
@@ -117,21 +115,56 @@ CRITICAL: DO NOT count sprinkler heads! Sprinkler heads appear as:
 - No letter designation inside the circle
 
 FIRE ALARM devices have these symbols (count ONLY these):
-- Smoke detectors: Circle with "S" or "SD" inside, or diamond with "S"
-- Heat detectors: Circle with "H" or "HD" inside
-- Pull stations: Square/rectangle symbol, often near exits, labeled "PS" or "MPS"
-- Horn/strobes: "HS" symbol, notification appliance
-- Strobes: "S" or strobe symbol on walls
-- Horns/speakers: "H/S" or speaker symbol
-- Duct detectors: Rectangle with "DD", in ductwork
-- FACP: Large panel symbol, usually in electrical room
-- Annunciator: Panel symbol near entrance
-- Monitor modules: "MM" or small square
-- Relay modules: "RM" or small square
+
+DETECTION DEVICES:
+- Smoke detectors: Circle with "S" or "SD" inside, or diamond shape. May say "Addressable Smoke Detector". NOTE: Combo devices with built-in horn/strobe still count as ONE smoke detector.
+- Heat detectors: Circle with "H" or "HD" inside, or triangle shape
+- Pull stations: Square/rectangle near exits, labeled "PS" or "MPS" or "Manual Pull Station"
+- Duct detectors: Rectangle with "DD", mounted in ductwork
+- CO detectors: Circle with "CO" inside
+
+NOTIFICATION DEVICES:
+- Horn/strobes: "HS" or "H/S" symbol - counts as ONE device even if combo unit
+- Strobes only: "S" or strobe symbol on walls (visual only, no horn)
+- Horns/speakers: Speaker symbol or "SPK"
+- IMPORTANT: If smoke detectors have BUILT-IN horn/strobes (combo units), do NOT double count. The horn/strobe is part of the smoke detector.
+
+PANELS - COUNT VERY CAREFULLY:
+- FACP (Fire Alarm Control Panel): The MAIN control panel. Typically ONE per building. Located in electrical room, fire command center, or mechanical room. Symbol shows "FACP". This is where all circuits originate.
+- FARA or Annunciator: REMOTE display panel, usually at main entrance, lobby, or fire command. Shows "FARA" or "ANN" or "Remote Annunciator" or "Graphic Annunciator". COUNT THESE AS annunciator, NOT as facp!
+- RULE: If riser diagram shows FACP and FARA, count = 1 facp + 1 annunciator (NOT 2 facp)
+
+MODULES - CHECK RISER DIAGRAMS CAREFULLY:
+- Monitor modules (MM): Used to monitor input signals. Look for connections to:
+  * Sprinkler flow switches
+  * Tamper switches  
+  * Elevator equipment
+  * HVAC systems
+- Relay modules (RM): Used to control output devices. Look for:
+  * Door holder releases
+  * Elevator recall
+  * HVAC shutdown
+  * Stairwell pressurization
+- "ER" symbols = Elevator Relay modules - count these as relay_modules
+- Look at EACH FLOOR on riser diagram - count modules at interface points
+- Typical: 2-4 modules per elevator, 1-2 per floor for door holders, 1-2 for fire pump/sprinkler monitoring
+
+RISER DIAGRAM ANALYSIS:
+- Riser diagrams show the SYSTEM ARCHITECTURE - critical for module counts
+- Follow lines from FACP to each floor
+- Count "ER", "MM", "RM" symbols at each connection point
+- Interface to "Elevator Equipment" = monitor + relay modules
+- Interface to "Fire Protection" = monitor modules for flow/tamper
+- Each stairwell with door holders = relay modules
+
+DOOR HOLDERS:
+- Magnetic door holders keep fire doors open
+- Release on alarm - connected via relay module
+- Symbol may show door with magnet or "DH"
 
 Look at the LEGEND on each page to identify correct symbols.
-If a page is labeled "Sprinkler" or "FP-" or shows piping with circles, those are SPRINKLER HEADS - do NOT count them as fire alarm.
-If you're unsure, count 0 rather than guessing."""
+If a page is labeled "Sprinkler" or shows piping with circles, those are SPRINKLER HEADS - do NOT count them.
+If you're unsure about a symbol, count 0 rather than guessing."""
     },
     
     "sprinkler": {
@@ -262,11 +295,22 @@ IGNORE: Fire alarm, sprinkler, general electrical"""
         "prompt_focus": """Focus on ALL LOW VOLTAGE devices (both fire alarm and security):
 
 FIRE ALARM:
-- Smoke detectors, heat detectors
-- Pull stations
+- Smoke detectors, heat detectors (circles with S, SD, H, HD)
+- Pull stations (PS, MPS near exits)
 - Horn/strobes, notification devices
-- FACP, annunciator panels
-- Modules (monitor, relay)
+- FACP = Main Fire Alarm Control Panel (typically ONE per building)
+- FARA/Annunciator = Remote display panel (count as annunciator, NOT facp)
+- Modules: MM (monitor), RM (relay), ER (elevator relay)
+
+IMPORTANT FOR PANELS:
+- FACP and FARA are DIFFERENT. FARA is an annunciator.
+- If you see FACP + FARA on riser, count 1 facp + 1 annunciator
+
+IMPORTANT FOR MODULES:
+- Check riser diagrams for module counts
+- Look for interfaces to elevators, fire protection, HVAC
+- "ER" = elevator relay = count as relay_modules
+- Each elevator interface typically needs monitor + relay modules
 
 SECURITY:
 - Cameras
@@ -560,13 +604,15 @@ def analyze_blueprint_page(client, image_data: bytes, trade_config: dict, page_n
 
 IMPORTANT: Return ONLY valid JSON, no other text. Use this exact format:
 {{
-    "page_type": "floor plan/riser/schedule/detail/legend/other",
+    "page_type": "floor plan/riser diagram/schedule/detail/legend/other",
     "description": "Brief description of what this page shows",
     "devices": {json.dumps(device_json)},
-    "notes": "Any relevant notes"
+    "notes": "Any relevant notes about panels, modules, or system architecture"
 }}
 
-Be thorough - count EVERY device symbol you can identify. Check legends and schedules for quantities.
+Be thorough - count EVERY device symbol you can identify. 
+PAY SPECIAL ATTENTION to riser diagrams for FACP, annunciator, and module counts.
+Check legends and schedules for quantities.
 Return ONLY the JSON object, nothing else."""
 
     try:
@@ -1030,7 +1076,7 @@ BID:
     
     # Footer
     st.markdown("---")
-    st.caption("⚡ BidSync AI v2.1 | Built for ASAP Security")
+    st.caption("⚡ BidSync AI v11 | Built for ASAP Security")
 
 # ============================================
 # RUN
