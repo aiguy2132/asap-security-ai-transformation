@@ -347,8 +347,11 @@ st.markdown("""
         color: #00d4ff !important;
     }
     
-    /* Trade selector buttons - shiny gradient */
-    .stButton > button {
+    /* Trade selector buttons - AGGRESSIVE OVERRIDE */
+    .stButton > button,
+    .stButton button,
+    button[kind="secondary"],
+    [data-testid="baseButton-secondary"] {
         background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 50%, #4f46e5 100%) !important;
         border: none !important;
         border-radius: 16px !important;
@@ -358,24 +361,43 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4) !important;
     }
     
-    .stButton > button:hover {
+    .stButton > button:hover,
+    .stButton button:hover,
+    button[kind="secondary"]:hover,
+    [data-testid="baseButton-secondary"]:hover {
         transform: translateY(-4px) !important;
         box-shadow: 0 8px 30px rgba(139, 92, 246, 0.6) !important;
         background: linear-gradient(135deg, #22d3ee 0%, #a855f7 50%, #6366f1 100%) !important;
     }
     
-    .stButton > button p, .stButton > button span {
+    .stButton > button p, 
+    .stButton > button span,
+    .stButton > button div,
+    .stButton button p,
+    .stButton button span,
+    .stButton button div,
+    [data-testid="baseButton-secondary"] p,
+    [data-testid="baseButton-secondary"] span {
         color: #000000 !important;
         -webkit-text-fill-color: #000000 !important;
         font-weight: 700 !important;
         font-size: 1.1rem !important;
+        background: none !important;
     }
     
     /* Primary action button (Analyze) */
-    .stButton > button[kind="primary"] p, 
-    .stButton > button[kind="primary"] span {
+    button[kind="primary"],
+    [data-testid="baseButton-primary"] {
+        background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%) !important;
+    }
+    
+    button[kind="primary"] p, 
+    button[kind="primary"] span,
+    [data-testid="baseButton-primary"] p,
+    [data-testid="baseButton-primary"] span {
         color: #000000 !important;
         -webkit-text-fill-color: #000000 !important;
+        font-weight: 700 !important;
     }
     
     /* Selectbox */
@@ -444,10 +466,22 @@ st.markdown("""
         background: rgba(0, 212, 255, 0.15) !important;
     }
     
-    /* Download buttons */
-    .stDownloadButton > button {
+    /* Download buttons - keep white */
+    .stDownloadButton > button,
+    .stDownloadButton button {
         background: rgba(255, 255, 255, 0.95) !important;
         color: #0a1628 !important;
+        border: none !important;
+        min-height: auto !important;
+        box-shadow: none !important;
+    }
+    
+    .stDownloadButton > button p,
+    .stDownloadButton > button span,
+    .stDownloadButton button p,
+    .stDownloadButton button span {
+        color: #0a1628 !important;
+        -webkit-text-fill-color: #0a1628 !important;
     }
 </style>
 """, unsafe_allow_html=True)
