@@ -1,7 +1,7 @@
 """
-BidSync AI v12 - Fire Protection Blueprint Analyzer
+BidSync AI v13 - Fire Protection Blueprint Analyzer
 Built for ASAP Security
-v12 - Fix 120VAC vs fire alarm smoke detection + disconnect counting
+v13 - Full prompt tune-up for all trades
 """
 
 import streamlit as st
@@ -33,7 +33,7 @@ TRADE_CONFIG = {
         "description": "Show everything - fire alarm, sprinkler, electrical, security",
         "devices": {
             # Fire alarm
-            "smoke_detectors": ("Smoke Detectors", 250),
+            "smoke_detectors": ("Smoke Detectors (FA)", 250),
             "heat_detectors": ("Heat Detectors", 200),
             "pull_stations": ("Pull Stations", 150),
             "horn_strobes": ("Horn/Strobes", 175),
@@ -60,31 +60,67 @@ TRADE_CONFIG = {
             "door_contacts": ("Door Contacts", 45),
             "access_panel": ("Access Control Panel", 2500),
         },
-        "prompt_focus": """Count ALL fire protection and life safety devices. 
+        "prompt_focus": """Count ALL fire protection and life safety devices across all trades.
 
-CRITICAL - DISTINGUISH BETWEEN:
+=== SPRINKLER SYSTEM ===
+SPRINKLER HEADS:
+- Circles connected to piping lines on ceiling plans
+- On pages labeled "FP-", "Sprinkler", or "Fire Protection"
+- Count as sprinkler_heads ONLY - never as smoke detectors
+- Look for pendant, upright, sidewall types
 
-SPRINKLER HEADS (circles on piping):
-- Simple circles connected to piping lines
-- On pages labeled "FP-" or "Sprinkler"  
-- Count as sprinkler_heads, NOT smoke detectors
+OTHER SPRINKLER:
+- Risers: Vertical pipe assemblies
+- FDC: Fire Department Connection (exterior)
+- Flow switches: On risers, monitors water flow
+- Tamper switches: On valves
 
-FIRE ALARM (labeled symbols):
-- Smoke detectors: Circle with "S" or "SD" inside
-- Pull stations: Square near exits with "PS"
-- Horn/strobes: "HS" symbol
-- FACP: Main panel (ONE per building typically)
-- FARA/Annunciator: Remote display panel - count as annunciator NOT facp
-- Monitor/Relay modules: "MM", "RM", or "ER" symbols
+=== FIRE ALARM SYSTEM (24VDC Addressable) ===
+Found in corridors, common areas, lobbies - NOT in dwelling units.
 
-ELECTRICAL:
-- 120VAC smoke/CO: Residential-type, on electrical plans
-- Exit signs, emergency lights
+DETECTION:
+- Smoke detectors: Circle with "S" or "SD", labeled "Addressable"
+- Heat detectors: Circle with "H" or "HD", or triangle symbol
+- Pull stations: "PS" or "MPS" near exits/stairwells
+- Duct detectors: "DD" in HVAC ductwork
 
-SECURITY:
-- Cameras, card readers, door contacts
+NOTIFICATION:
+- Horn/strobes: "HS" or "H/S" - count as ONE device
+- Strobes: "S" on walls (visual only)
+- Horns/speakers: Speaker symbol
 
-Check legends and RISER DIAGRAMS carefully for panel and module counts."""
+PANELS - COUNT CAREFULLY:
+- FACP: Main Fire Alarm Control Panel - typically ONE per building
+- FARA/Annunciator: Remote display at entrance - count as annunciator NOT facp
+- If you see FACP + FARA = 1 facp + 1 annunciator
+
+MODULES - CHECK RISER DIAGRAMS:
+- Monitor modules (MM): For inputs (flow, tamper, elevator)
+- Relay modules (RM): For outputs (door holders, HVAC)
+- "ER" = Elevator Relay = count as relay_modules
+
+=== ELECTRICAL (120VAC) ===
+RESIDENTIAL SMOKE/CO - IN DWELLING UNITS ONLY:
+- Hardwired to electrical circuits
+- Found in bedrooms, unit hallways
+- NOT labeled "addressable"
+- Count as smoke_detectors_120v
+
+OTHER ELECTRICAL:
+- Exit signs: Illuminated exit signs
+- Emergency lights: Battery backup lights in egress paths
+
+=== SECURITY ===
+- Cameras: Security/surveillance cameras
+- Card readers: Access control at doors
+- Door contacts: Magnetic contacts on doors
+- Access panel: Security control panel (different from FACP)
+
+=== KEY RULES ===
+1. Sprinkler circles ≠ Smoke detectors
+2. Fire alarm smokes (addressable, corridors) ≠ Electrical smokes (120VAC, bedrooms)
+3. FARA = annunciator, NOT a second FACP
+4. Check riser diagrams for module counts"""
     },
     
     "fire_alarm": {
@@ -182,26 +218,64 @@ If you're unsure about a symbol, count 0 rather than guessing."""
             "inspectors_test": ("Inspector's Test", 125),
             "fire_pump": ("Fire Pump", 15000),
         },
-        "prompt_focus": """Focus ONLY on SPRINKLER/SUPPRESSION devices.
+        "prompt_focus": """Focus ONLY on SPRINKLER/FIRE SUPPRESSION devices.
 
-SPRINKLER HEADS appear as:
-- Circles on ceiling/floor plans connected to piping
-- Pages labeled "FP-" or "Sprinkler" or "Fire Protection"
-- Count ALL circles connected to sprinkler piping lines
-- May be pendant, upright, sidewall, or concealed types
+=== WHAT TO COUNT ===
 
-Also count:
-- Risers (vertical pipe from main to floors)
-- PIV (Post Indicator Valve) - in yard/exterior
-- OS&Y valves (Outside Screw & Yoke)
-- FDC (Fire Department Connection) - exterior wall
-- Flow switches (on risers)
-- Tamper switches (on valves)
-- Inspector's test connections
-- Fire pumps
+SPRINKLER HEADS:
+- Circles on ceiling/floor plans CONNECTED TO PIPING
+- Pages labeled "FP-", "Sprinkler", "Fire Protection", or "Suppression"
+- Types: Pendant (hanging down), Upright, Sidewall, Concealed
+- May show K-factor or temperature rating
+- Count ALL circles that are part of the sprinkler piping layout
 
-DO NOT count fire alarm devices (smoke detectors, pull stations, horn/strobes).
-Look at page labels and legends to confirm you're on a sprinkler plan."""
+RISERS:
+- Vertical pipe assembly from underground to floors
+- Usually shown in riser diagram or detail
+- Includes control valve, drain, gauges
+- Count each separate riser (wet riser, dry riser)
+
+VALVES:
+- PIV (Post Indicator Valve): In yard/exterior, controls underground main
+- OS&Y (Outside Screw & Yoke): Main control valve, visible stem
+- Count each valve shown
+
+FDC (Fire Department Connection):
+- On exterior wall, near entrance
+- Siamese connection for fire dept to pump in water
+- Usually 1-2 per building
+
+SWITCHES:
+- Flow switch: On riser, detects water flow (alarm)
+- Tamper switch: On valves, detects if valve is closed
+- Count each switch shown on riser diagram
+
+INSPECTOR'S TEST:
+- Test connection at remote point
+- Usually 1 per system/zone
+
+FIRE PUMP:
+- Boosts water pressure for high-rise or large buildings
+- Shown in pump room detail or riser
+
+=== WHAT NOT TO COUNT ===
+DO NOT count these as sprinkler devices:
+- Smoke detectors (fire alarm, not sprinkler)
+- Pull stations (fire alarm)
+- Horn/strobes (fire alarm)
+- FACP (fire alarm panel)
+- Any device with "S", "SD", "PS", "HS" labels (fire alarm)
+- HVAC equipment
+- Plumbing fixtures
+
+=== PAGE IDENTIFICATION ===
+Sprinkler pages typically show:
+- Piping layouts with circles (heads)
+- Pipe sizes (1", 1-1/4", 2", etc.)
+- Riser diagrams
+- Labels like "Wet System", "Dry System", "Preaction"
+
+If page shows electrical symbols, conduit, or "E-" drawing number = WRONG PAGE"""
     },
     
     "electrical": {
@@ -292,20 +366,73 @@ IGNORE: Fire alarm devices (24VDC), sprinkler, security, low voltage"""
             "keypad": ("Keypads", 225),
             "intercom": ("Intercom Stations", 400),
         },
-        "prompt_focus": """Focus ONLY on SECURITY/ACCESS CONTROL devices:
-- Security cameras (IP, analog, PTZ)
-- Card readers
-- Door contacts
-- Motion sensors
-- Glass break sensors
-- Access control panels
-- Electric strikes
-- Magnetic locks (mag locks)
-- REX (Request to Exit) sensors
-- Keypads
-- Intercom stations
+        "prompt_focus": """Focus ONLY on SECURITY and ACCESS CONTROL devices.
 
-IGNORE: Fire alarm, sprinkler, general electrical"""
+=== WHAT TO COUNT ===
+
+CAMERAS:
+- Security/surveillance cameras
+- Symbols: Camera icon, "CAM", "CCTV"
+- Types: Fixed, PTZ, dome, bullet
+- Located at entrances, parking, corridors
+
+CARD READERS:
+- Access control readers at doors
+- Symbols: Rectangle at door with "CR" or "RDR"
+- May show proximity, smart card, or multi-tech
+
+DOOR CONTACTS:
+- Magnetic contacts that detect door open/close
+- Symbol: Small rectangle on door frame
+- Used for security monitoring
+
+MOTION SENSORS:
+- PIR (Passive Infrared) motion detectors
+- For intrusion detection
+- NOT the same as fire alarm heat detectors
+
+GLASS BREAK SENSORS:
+- Detect breaking glass
+- Usually near windows/storefronts
+
+ACCESS CONTROL PANEL:
+- Main security panel (like DSC, Honeywell, Lenel)
+- Different from FACP (fire alarm panel)
+- Usually in IT room or security office
+
+ELECTRIC STRIKES & MAG LOCKS:
+- Electric strike: Releases door latch
+- Mag lock: Electromagnetic lock on door
+- Located at secured doors
+
+REX (Request to Exit):
+- Motion sensor or button to exit
+- Located inside secured doors
+
+KEYPADS:
+- PIN entry devices
+- At secured entrances
+
+INTERCOM:
+- Audio/video stations at entries
+- Lobby panels, unit stations
+
+=== WHAT NOT TO COUNT ===
+DO NOT count these as security:
+- Smoke detectors (fire alarm)
+- Heat detectors (fire alarm)
+- Pull stations (fire alarm)
+- Horn/strobes (fire alarm)
+- FACP (fire alarm panel - different from access panel)
+- Sprinkler heads
+- Exit signs, emergency lights (electrical)
+- Magnetic door HOLDERS (fire alarm - releases doors on alarm)
+
+=== KEY DISTINCTION ===
+- Mag LOCK = Security (holds door locked) ✓ COUNT
+- Mag door HOLDER = Fire alarm (holds door open, releases on alarm) ✗ DON'T COUNT
+
+Look for pages labeled "Security", "Access Control", or "S-" drawings."""
     },
     
     "low_voltage": {
@@ -319,10 +446,12 @@ IGNORE: Fire alarm, sprinkler, general electrical"""
             "pull_stations": ("Pull Stations", 150),
             "horn_strobes": ("Horn/Strobes", 175),
             "strobes_only": ("Strobes Only", 125),
+            "duct_detectors": ("Duct Detectors", 350),
             "facp": ("Fire Alarm Control Panel", 3500),
             "annunciator": ("Annunciator Panel", 1200),
             "monitor_modules": ("Monitor Modules", 125),
             "relay_modules": ("Relay Modules", 125),
+            "door_holders": ("Magnetic Door Holders", 85),
             # Security
             "cameras": ("Security Cameras", 450),
             "card_readers": ("Card Readers", 350),
@@ -330,33 +459,61 @@ IGNORE: Fire alarm, sprinkler, general electrical"""
             "motion_sensors": ("Motion Sensors", 125),
             "access_panel": ("Access Control Panel", 2500),
         },
-        "prompt_focus": """Focus on ALL LOW VOLTAGE devices (both fire alarm and security):
+        "prompt_focus": """Focus on ALL LOW VOLTAGE devices (Fire Alarm + Security).
 
-FIRE ALARM:
-- Smoke detectors, heat detectors (circles with S, SD, H, HD)
-- Pull stations (PS, MPS near exits)
-- Horn/strobes, notification devices
-- FACP = Main Fire Alarm Control Panel (typically ONE per building)
-- FARA/Annunciator = Remote display panel (count as annunciator, NOT facp)
-- Modules: MM (monitor), RM (relay), ER (elevator relay)
+=== FIRE ALARM (24VDC Addressable) ===
+Found in corridors, common areas, lobbies.
 
-IMPORTANT FOR PANELS:
-- FACP and FARA are DIFFERENT. FARA is an annunciator.
-- If you see FACP + FARA on riser, count 1 facp + 1 annunciator
+DETECTION:
+- Smoke detectors: Circle with "S" or "SD", "Addressable Smoke Detector"
+- Heat detectors: Circle with "H" or "HD", triangle shape
+- Pull stations: "PS" or "MPS" near exits
+- Duct detectors: "DD" in HVAC ductwork
 
-IMPORTANT FOR MODULES:
-- Check riser diagrams for module counts
-- Look for interfaces to elevators, fire protection, HVAC
-- "ER" = elevator relay = count as relay_modules
-- Each elevator interface typically needs monitor + relay modules
+NOTIFICATION:
+- Horn/strobes: "HS" - count as ONE device even if combo
+- Strobes only: "S" on walls
 
-SECURITY:
-- Cameras
-- Card readers, door contacts
-- Motion sensors
-- Access control panels
+PANELS - CRITICAL:
+- FACP: Main Fire Alarm Control Panel - typically ONE per building
+- FARA/Annunciator: Remote display panel - COUNT AS annunciator NOT facp
+- RULE: FACP + FARA = 1 facp + 1 annunciator (NOT 2 facp)
 
-IGNORE: Sprinkler heads, 120VAC electrical, lighting"""
+MODULES - CHECK RISER DIAGRAMS:
+- Monitor modules (MM): Inputs from flow switches, tamper, elevator
+- Relay modules (RM): Outputs to door holders, HVAC shutdown
+- "ER" = Elevator Relay = count as relay_modules
+- Look at each floor on riser - count interface points
+
+DOOR HOLDERS:
+- Magnetic holders keep fire doors open
+- Release on alarm
+- Connected via relay module
+
+=== SECURITY ===
+CAMERAS:
+- Security cameras: "CAM", camera icon
+
+ACCESS CONTROL:
+- Card readers: "CR" or "RDR" at doors
+- Door contacts: Magnetic sensors on doors
+- Motion sensors: PIR for intrusion (not fire alarm heat detectors)
+
+PANELS:
+- Access control panel: Security panel (different from FACP)
+
+=== WHAT NOT TO COUNT ===
+DO NOT count:
+- Sprinkler heads (suppression, not low voltage)
+- 120VAC smoke detectors (electrical, not low voltage)
+- Exit signs, emergency lights (electrical)
+- Receptacles, switches (electrical)
+
+=== KEY RULES ===
+1. Fire alarm smokes (addressable) ≠ Electrical smokes (120VAC)
+2. FARA = annunciator, NOT second FACP
+3. Check riser diagrams for module counts
+4. Mag LOCK (security) ≠ Mag door HOLDER (fire alarm)"""
     }
 }
 
@@ -1114,7 +1271,7 @@ BID:
     
     # Footer
     st.markdown("---")
-    st.caption("⚡ BidSync AI v12 | Built for ASAP Security")
+    st.caption("⚡ BidSync AI v13 | Built for ASAP Security")
 
 # ============================================
 # RUN
