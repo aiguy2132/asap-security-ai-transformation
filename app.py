@@ -1,7 +1,7 @@
 """
-BidSync AI v14 - Fire Protection Blueprint Analyzer
+BidSync AI v15 - Fire Protection Blueprint Analyzer
 Built for ASAP Security
-v14 - Fix sprinkler overcounting from fire alarm matrices
+v15 - Aggressive page-type filtering for sprinkler
 """
 
 import streamlit as st
@@ -218,84 +218,53 @@ If you're unsure about a symbol, count 0 rather than guessing."""
             "inspectors_test": ("Inspector's Test", 125),
             "fire_pump": ("Fire Pump", 15000),
         },
-        "prompt_focus": """Focus ONLY on SPRINKLER/FIRE SUPPRESSION devices.
+        "prompt_focus": """STEP 1 - PAGE TYPE CHECK (DO THIS FIRST):
+Look at this page. What type is it?
 
-=== CRITICAL: WHAT TO IGNORE ===
-DO NOT count devices from these page types:
-- Fire Alarm Matrix / Input-Output Matrix pages (these LIST sprinkler inputs but are NOT sprinkler drawings)
-- Text mentions like "SPRINKLER TAMPER SWITCH" in tables - these are fire alarm INPUT descriptions
-- Detail drawings shown as TEMPLATES (only count once per unique detail)
-- Any page with "Matrix" in the title
-- Any page that is primarily a table/schedule listing system inputs/outputs
+IF THIS PAGE IS ANY OF THESE, RETURN ALL ZEROS:
+- Matrix page (has "MATRIX" in title or shows input/output table)
+- Fire Alarm Matrix or Input/Output Matrix
+- Table or schedule with rows of text
+- Detail drawing (shows ONE riser or component close-up)
+- Notes page
+- Firestop detail
+- Any page that is NOT a floor plan showing piping layout
 
-ONLY count devices that appear as SYMBOLS on actual drawings, NOT text descriptions in tables.
+ONLY count devices if this page shows an ACTUAL FLOOR PLAN with sprinkler piping drawn across a building layout.
 
-=== WHAT TO COUNT (SYMBOLS ONLY) ===
+STEP 2 - IF AND ONLY IF THIS IS A FLOOR PLAN WITH PIPING:
 
 SPRINKLER HEADS:
-- Circle symbols on FLOOR PLANS connected to piping
-- Must see actual piping layout with heads
-- Pages showing reflected ceiling plans or sprinkler layouts
-- If you don't see piping with circles, count 0 heads
+- Circle symbols connected to piping lines on a floor plan
+- You must see actual piping running across the floor with heads attached
+- No piping visible = 0 heads
 
-RISERS:
-- Count from RISER DIAGRAMS only
-- Typically 1-2 risers per building (wet and/or dry)
-- A "Wet Riser Detail" and "Dry Riser Detail" = 2 risers total, not 2 each
-- Do NOT count each component on a riser as a separate riser
+FOR THESE ITEMS, ONLY COUNT ONCE PER BUILDING (not per page):
+- Risers: Usually 1-2 total for entire building
+- OS&Y Valve: Usually 1-2 total
+- FDC: Usually 1-2 total
+- Flow Switch: Usually 1-2 total
+- Tamper Switch: Usually 2-4 total
+- Fire Pump: Usually 0 (most buildings don't have one)
 
-VALVES (OS&Y):
-- Main shutoff valve on each riser
-- Typically 1 per riser = 1-2 total
-- Do NOT count every valve symbol on a detail multiple times
+CRITICAL RULES:
+1. A "Riser Detail" drawing shows components of ONE riser - count 1 riser, not each component
+2. Text that says "SPRINKLER TAMPER SWITCH" in a table = 0 (that's fire alarm input, not a sprinkler device)
+3. If page title contains "Matrix" = return ALL ZEROS
+4. If page is mostly a TABLE with rows/columns = return ALL ZEROS
+5. If you don't see actual piping with heads on a floor layout = 0 sprinkler heads
 
-FDC (Fire Dept Connection):
-- Exterior connection for fire department
-- Typically 1-2 per building total
-- Count once even if shown on multiple detail drawings
+WHAT REAL SPRINKLER FLOOR PLANS LOOK LIKE:
+- Building outline with rooms
+- Piping lines running across ceiling
+- Small circles (heads) along the piping
+- Pipe sizes labeled (1", 1-1/4", 2")
 
-FLOW SWITCH:
-- Detects water flow in pipe
-- Typically 1 per riser/zone
-- Usually 1-2 total
-
-TAMPER SWITCH:
-- Monitors valve position
-- Typically 1-2 per riser
-- Usually 2-4 total for a building
-
-INSPECTOR'S TEST:
-- Remote test connection
-- Usually 1 per system
-
-FIRE PUMP:
-- Only count if there's an actual FIRE PUMP DETAIL or schedule
-- Most buildings don't have one
-- If no pump room detail, count 0
-
-=== REALISTIC EXPECTATIONS ===
-For a typical building:
-- Risers: 1-3
-- OS&Y: 1-3
-- FDC: 1-2
-- Flow Switch: 1-3
-- Tamper Switch: 2-6
-- Fire Pump: 0-1
-
-If your counts are much higher, you're likely miscounting.
-
-=== PAGE IDENTIFICATION ===
-GOOD sprinkler pages (COUNT from these):
-- Floor plans showing piping and heads
-- Riser diagrams (FP-4A, FP-4B type)
-- Sprinkler layout plans
-
-BAD pages (DO NOT count from these):
-- "Fire Alarm Matrix" - this is fire alarm, not sprinkler
-- "Input/Output Matrix" - lists what connects to fire alarm
-- Firestop details
-- General notes pages
-- Any table listing "SPRINKLER TAMPER SWITCH" etc as rows"""
+WHAT IS NOT A SPRINKLER FLOOR PLAN:
+- Tables listing "Fire Alarm System Inputs"
+- Matrices showing what triggers what
+- Single component detail drawings
+- Text-heavy pages"""
     },
     
     "electrical": {
@@ -1295,7 +1264,7 @@ BID:
     
     # Footer
     st.markdown("---")
-    st.caption("⚡ BidSync AI v14 | Built for ASAP Security")
+    st.caption("⚡ BidSync AI v15 | Built for ASAP Security")
 
 # ============================================
 # RUN
