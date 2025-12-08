@@ -1,7 +1,7 @@
 """
-BidSync AI v16 - Fire Protection Blueprint Analyzer
+BidSync AI v17 - Fire Protection Blueprint Analyzer
 Built for ASAP Security
-v16 - Simplified sprinkler prompt
+v17 - Drawing number detection for sprinkler mode
 """
 
 import streamlit as st
@@ -218,26 +218,47 @@ If you're unsure about a symbol, count 0 rather than guessing."""
             "inspectors_test": ("Inspector's Test", 125),
             "fire_pump": ("Fire Pump", 15000),
         },
-        "prompt_focus": """Count sprinkler devices ONLY from floor plans showing piping layouts.
+        "prompt_focus": """STEP 1: CHECK THE DRAWING NUMBER IN THE TITLE BLOCK (bottom right corner).
 
-RETURN ALL ZEROS IF:
-- Page title contains "Matrix" or "Schedule" 
-- Page is a table with rows/columns of text
-- Page shows a single component detail (like "Riser Detail")
-- Page is notes, specs, or firestop details
-- You don't see actual piping running across a floor layout
+RETURN ALL ZEROS IF THE DRAWING NUMBER STARTS WITH:
+- "E" or "E-" (Electrical drawing - NOT sprinkler)
+- "FA" or "FA-" (Fire Alarm - NOT sprinkler)
+- "A" or "A-" (Architectural - NOT sprinkler)
+- "M" or "M-" (Mechanical - NOT sprinkler)
+- "P" or "P-" (Plumbing - may have some overlap but usually NOT sprinkler)
 
-SPRINKLER HEADS: Only count circles connected to piping on FLOOR PLANS. No floor plan = 0.
+ONLY COUNT SPRINKLERS IF DRAWING NUMBER STARTS WITH:
+- "FP" or "FP-" (Fire Protection)
+- "SP" or "SP-" (Sprinkler)
+- "FS" or "FS-" (Fire Suppression)
 
-RISERS: Count 1 per riser diagram. Wet riser + Dry riser = 2 total. NOT per page.
+ALSO RETURN ALL ZEROS IF:
+- Page title contains "Matrix", "Schedule", "Riser Detail", "Notes"
+- Page shows HVAC equipment (condensers, RTUs) - these are NOT sprinkler heads
+- Page shows smoke detectors or fire alarm devices
+- You see electrical symbols, conduit, panels
+- No actual sprinkler piping is visible
 
-FDC: Usually 1-2 per building total. Count once.
+STEP 2: IF AND ONLY IF THIS IS A SPRINKLER DRAWING (FP-, SP-, FS-):
 
-SWITCHES: Flow and tamper - usually 1-2 each per building.
+SPRINKLER HEADS: Small circles connected to piping lines running across ceiling
+- Must see actual PIPING (lines with pipe sizes like 1", 1-1/4", 2")
+- Heads are circles attached to the piping
+- No piping = 0 heads
 
-FIRE PUMP: Only if dedicated pump detail exists. Usually 0.
+THESE ARE NOT SPRINKLER HEADS:
+- HVAC condensers/equipment on roof plans (rectangles with fans)
+- Smoke detectors (circles with "S" or "SD")
+- Any electrical symbol
+- Circles without piping connections
 
-If unsure, count 0."""
+OTHER DEVICES (count conservatively):
+- Risers: 1-2 per building typically
+- FDC: 1-2 per building
+- Flow/Tamper switches: 1-2 each per building
+- Fire Pump: Usually 0 unless dedicated pump room shown
+
+When in doubt, count 0."""
     },
     
     "electrical": {
@@ -1237,7 +1258,7 @@ BID:
     
     # Footer
     st.markdown("---")
-    st.caption("⚡ BidSync AI v16 | Built for ASAP Security")
+    st.caption("⚡ BidSync AI v17 | Built for ASAP Security")
 
 # ============================================
 # RUN
