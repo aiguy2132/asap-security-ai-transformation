@@ -1,7 +1,7 @@
 """
-BidSync AI v13 - Fire Protection Blueprint Analyzer
+BidSync AI v14 - Fire Protection Blueprint Analyzer
 Built for ASAP Security
-v13 - Full prompt tune-up for all trades
+v14 - Fix sprinkler overcounting from fire alarm matrices
 """
 
 import streamlit as st
@@ -220,62 +220,82 @@ If you're unsure about a symbol, count 0 rather than guessing."""
         },
         "prompt_focus": """Focus ONLY on SPRINKLER/FIRE SUPPRESSION devices.
 
-=== WHAT TO COUNT ===
+=== CRITICAL: WHAT TO IGNORE ===
+DO NOT count devices from these page types:
+- Fire Alarm Matrix / Input-Output Matrix pages (these LIST sprinkler inputs but are NOT sprinkler drawings)
+- Text mentions like "SPRINKLER TAMPER SWITCH" in tables - these are fire alarm INPUT descriptions
+- Detail drawings shown as TEMPLATES (only count once per unique detail)
+- Any page with "Matrix" in the title
+- Any page that is primarily a table/schedule listing system inputs/outputs
+
+ONLY count devices that appear as SYMBOLS on actual drawings, NOT text descriptions in tables.
+
+=== WHAT TO COUNT (SYMBOLS ONLY) ===
 
 SPRINKLER HEADS:
-- Circles on ceiling/floor plans CONNECTED TO PIPING
-- Pages labeled "FP-", "Sprinkler", "Fire Protection", or "Suppression"
-- Types: Pendant (hanging down), Upright, Sidewall, Concealed
-- May show K-factor or temperature rating
-- Count ALL circles that are part of the sprinkler piping layout
+- Circle symbols on FLOOR PLANS connected to piping
+- Must see actual piping layout with heads
+- Pages showing reflected ceiling plans or sprinkler layouts
+- If you don't see piping with circles, count 0 heads
 
 RISERS:
-- Vertical pipe assembly from underground to floors
-- Usually shown in riser diagram or detail
-- Includes control valve, drain, gauges
-- Count each separate riser (wet riser, dry riser)
+- Count from RISER DIAGRAMS only
+- Typically 1-2 risers per building (wet and/or dry)
+- A "Wet Riser Detail" and "Dry Riser Detail" = 2 risers total, not 2 each
+- Do NOT count each component on a riser as a separate riser
 
-VALVES:
-- PIV (Post Indicator Valve): In yard/exterior, controls underground main
-- OS&Y (Outside Screw & Yoke): Main control valve, visible stem
-- Count each valve shown
+VALVES (OS&Y):
+- Main shutoff valve on each riser
+- Typically 1 per riser = 1-2 total
+- Do NOT count every valve symbol on a detail multiple times
 
-FDC (Fire Department Connection):
-- On exterior wall, near entrance
-- Siamese connection for fire dept to pump in water
-- Usually 1-2 per building
+FDC (Fire Dept Connection):
+- Exterior connection for fire department
+- Typically 1-2 per building total
+- Count once even if shown on multiple detail drawings
 
-SWITCHES:
-- Flow switch: On riser, detects water flow (alarm)
-- Tamper switch: On valves, detects if valve is closed
-- Count each switch shown on riser diagram
+FLOW SWITCH:
+- Detects water flow in pipe
+- Typically 1 per riser/zone
+- Usually 1-2 total
+
+TAMPER SWITCH:
+- Monitors valve position
+- Typically 1-2 per riser
+- Usually 2-4 total for a building
 
 INSPECTOR'S TEST:
-- Test connection at remote point
-- Usually 1 per system/zone
+- Remote test connection
+- Usually 1 per system
 
 FIRE PUMP:
-- Boosts water pressure for high-rise or large buildings
-- Shown in pump room detail or riser
+- Only count if there's an actual FIRE PUMP DETAIL or schedule
+- Most buildings don't have one
+- If no pump room detail, count 0
 
-=== WHAT NOT TO COUNT ===
-DO NOT count these as sprinkler devices:
-- Smoke detectors (fire alarm, not sprinkler)
-- Pull stations (fire alarm)
-- Horn/strobes (fire alarm)
-- FACP (fire alarm panel)
-- Any device with "S", "SD", "PS", "HS" labels (fire alarm)
-- HVAC equipment
-- Plumbing fixtures
+=== REALISTIC EXPECTATIONS ===
+For a typical building:
+- Risers: 1-3
+- OS&Y: 1-3
+- FDC: 1-2
+- Flow Switch: 1-3
+- Tamper Switch: 2-6
+- Fire Pump: 0-1
+
+If your counts are much higher, you're likely miscounting.
 
 === PAGE IDENTIFICATION ===
-Sprinkler pages typically show:
-- Piping layouts with circles (heads)
-- Pipe sizes (1", 1-1/4", 2", etc.)
-- Riser diagrams
-- Labels like "Wet System", "Dry System", "Preaction"
+GOOD sprinkler pages (COUNT from these):
+- Floor plans showing piping and heads
+- Riser diagrams (FP-4A, FP-4B type)
+- Sprinkler layout plans
 
-If page shows electrical symbols, conduit, or "E-" drawing number = WRONG PAGE"""
+BAD pages (DO NOT count from these):
+- "Fire Alarm Matrix" - this is fire alarm, not sprinkler
+- "Input/Output Matrix" - lists what connects to fire alarm
+- Firestop details
+- General notes pages
+- Any table listing "SPRINKLER TAMPER SWITCH" etc as rows"""
     },
     
     "electrical": {
@@ -909,8 +929,11 @@ def main():
     # Header
     st.markdown("""
     <h1 style='text-align: center; background: linear-gradient(135deg, #00d4ff 0%, #a855f7 100%); 
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 3rem;'>
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 3rem; margin-bottom: 0;'>
     ⚡ BidSync AI</h1>
+    <p style='text-align: center; background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 50%, #4f46e5 100%); 
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.3rem; font-weight: 600; margin-top: 0.5rem;'>
+    Agentic Bidding Software</p>
     """, unsafe_allow_html=True)
     
     # ========================================
@@ -921,7 +944,8 @@ def main():
     
     if st.session_state['selected_trade'] is None:
         st.markdown("""
-        <p style='text-align: center; background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 50%, #4f46e5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.4rem; font-weight: 600; margin-bottom: 2rem;'>
+        <p style='text-align: center; background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 50%, #4f46e5 100%); 
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.4rem; font-weight: 600; margin-bottom: 2rem;'>
         Agentic Bidding Software
         </p>
         """, unsafe_allow_html=True)
@@ -1271,7 +1295,7 @@ BID:
     
     # Footer
     st.markdown("---")
-    st.caption("⚡ BidSync AI v13 | Built for ASAP Security")
+    st.caption("⚡ BidSync AI v14 | Built for ASAP Security")
 
 # ============================================
 # RUN
