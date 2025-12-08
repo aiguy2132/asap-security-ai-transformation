@@ -1,7 +1,7 @@
 """
-BidSync AI v17 - Fire Protection Blueprint Analyzer
+BidSync AI v18 - Fire Protection Blueprint Analyzer
 Built for ASAP Security
-v17 - Drawing number detection for sprinkler mode
+v18 - Fix JSON key matching for device counts
 """
 
 import streamlit as st
@@ -780,17 +780,18 @@ def analyze_blueprint_page(client, image_data: bytes, trade_config: dict, page_n
 
 {trade_config["prompt_focus"]}
 
-IMPORTANT: Return ONLY valid JSON, no other text. Use this exact format:
+CRITICAL: Return ONLY valid JSON with these EXACT device keys (use these exact names):
+{json.dumps(device_json, indent=2)}
+
+Full response format:
 {{
     "page_type": "floor plan/riser diagram/schedule/detail/legend/other",
     "description": "Brief description of what this page shows",
     "devices": {json.dumps(device_json)},
-    "notes": "Any relevant notes about panels, modules, or system architecture"
+    "notes": "Any relevant notes"
 }}
 
-Be thorough - count EVERY device symbol you can identify. 
-PAY SPECIAL ATTENTION to riser diagrams for FACP, annunciator, and module counts.
-Check legends and schedules for quantities.
+Use the EXACT device key names shown above. Do not rename keys.
 Return ONLY the JSON object, nothing else."""
 
     try:
@@ -1247,18 +1248,22 @@ BID:
                         st.markdown(f"**Page {pr['page']}** *{pr.get('type', '')}*")
                         st.write(pr.get('description', ''))
                         
-                        devices_found = {k: v for k, v in pr.get('devices', {}).items() if v > 0}
+                        raw_devices = pr.get('devices', {})
+                        devices_found = {k: v for k, v in raw_devices.items() if v > 0}
                         if devices_found:
                             for dk, dv in devices_found.items():
                                 display = trade_config["devices"].get(dk, (dk.replace('_', ' ').title(), 0))[0]
                                 st.markdown(f"- {display}: **{dv}**")
                         else:
                             st.caption("No devices on this page")
+                        
+                        if pr.get('notes'):
+                            st.caption(f"Notes: {pr['notes']}")
                         st.markdown("---")
     
     # Footer
     st.markdown("---")
-    st.caption("⚡ BidSync AI v17 | Built for ASAP Security")
+    st.caption("⚡ BidSync AI v18 | Built for ASAP Security")
 
 # ============================================
 # RUN
