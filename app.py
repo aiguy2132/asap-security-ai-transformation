@@ -33,32 +33,32 @@ TRADE_CONFIG = {
         "description": "Show everything - fire alarm, sprinkler, electrical, security",
         "devices": {
             # Fire alarm
-            "smoke_detectors": ("Smoke Detectors (FA)", 250),
-            "heat_detectors": ("Heat Detectors", 200),
-            "pull_stations": ("Pull Stations", 150),
-            "horn_strobes": ("Horn/Strobes", 175),
-            "strobes_only": ("Strobes Only", 125),
-            "horns_speakers": ("Horns/Speakers", 150),
-            "duct_detectors": ("Duct Detectors", 350),
-            "facp": ("Fire Alarm Control Panel", 3500),
-            "annunciator": ("Annunciator Panel", 1200),
-            "monitor_modules": ("Monitor Modules", 125),
-            "relay_modules": ("Relay Modules", 125),
+            "smoke_detectors": ("Smoke Detectors (FA)", 0),
+            "heat_detectors": ("Heat Detectors", 0),
+            "pull_stations": ("Pull Stations", 0),
+            "horn_strobes": ("Horn/Strobes", 0),
+            "strobes_only": ("Strobes Only", 0),
+            "horns_speakers": ("Horns/Speakers", 0),
+            "duct_detectors": ("Duct Detectors", 0),
+            "facp": ("Fire Alarm Control Panel", 0),
+            "annunciator": ("Annunciator Panel", 0),
+            "monitor_modules": ("Monitor Modules", 0),
+            "relay_modules": ("Relay Modules", 0),
             # Sprinkler
-            "sprinkler_heads": ("Sprinkler Heads", 85),
-            "risers": ("Risers", 1500),
-            "fdc": ("Fire Dept Connection", 650),
-            "flow_switch": ("Flow Switch", 275),
-            "tamper_switch": ("Tamper Switch", 150),
+            "sprinkler_heads": ("Sprinkler Heads", 0),
+            "risers": ("Risers", 0),
+            "fdc": ("Fire Dept Connection", 0),
+            "flow_switch": ("Flow Switch", 0),
+            "tamper_switch": ("Tamper Switch", 0),
             # Electrical
-            "smoke_detectors_120v": ("Smoke Detectors (120VAC)", 45),
-            "exit_signs": ("Exit Signs", 125),
-            "emergency_lights": ("Emergency Lights", 200),
+            "smoke_detectors_120v": ("Smoke Detectors (120VAC)", 0),
+            "exit_signs": ("Exit Signs", 0),
+            "emergency_lights": ("Emergency Lights", 0),
             # Security
-            "cameras": ("Security Cameras", 450),
-            "card_readers": ("Card Readers", 350),
-            "door_contacts": ("Door Contacts", 45),
-            "access_panel": ("Access Control Panel", 2500),
+            "cameras": ("Security Cameras", 0),
+            "card_readers": ("Card Readers", 0),
+            "door_contacts": ("Door Contacts", 0),
+            "access_panel": ("Access Control Panel", 0),
         },
         "prompt_focus": """Count ALL fire protection and life safety devices across all trades.
 
@@ -120,7 +120,9 @@ OTHER ELECTRICAL:
 1. Sprinkler circles ≠ Smoke detectors
 2. Fire alarm smokes (addressable, corridors) ≠ Electrical smokes (120VAC, bedrooms)
 3. FARA = annunciator, NOT a second FACP
-4. Check riser diagrams for module counts"""
+4. Check riser diagrams for module counts
+5. Pull stations at EVERY stairwell on EVERY floor
+6. Count annunciator separately from FACP"""
     },
     
     "fire_alarm": {
@@ -128,19 +130,19 @@ OTHER ELECTRICAL:
         "icon": "🚨",
         "description": "Smoke detectors, pull stations, horn/strobes, panels",
         "devices": {
-            "smoke_detectors": ("Smoke Detectors", 250),
-            "heat_detectors": ("Heat Detectors", 200),
-            "pull_stations": ("Pull Stations", 150),
-            "horn_strobes": ("Horn/Strobes", 175),
-            "strobes_only": ("Strobes Only", 125),
-            "horns_speakers": ("Horns/Speakers", 150),
-            "duct_detectors": ("Duct Detectors", 350),
-            "beam_detectors": ("Beam Detectors", 800),
-            "facp": ("Fire Alarm Control Panel", 3500),
-            "annunciator": ("Annunciator Panel", 1200),
-            "monitor_modules": ("Monitor Modules", 125),
-            "relay_modules": ("Relay Modules", 125),
-            "door_holders": ("Magnetic Door Holders", 85),
+            "smoke_detectors": ("Smoke Detectors", 0),
+            "heat_detectors": ("Heat Detectors", 0),
+            "pull_stations": ("Pull Stations", 0),
+            "horn_strobes": ("Horn/Strobes", 0),
+            "strobes_only": ("Strobes Only", 0),
+            "horns_speakers": ("Horns/Speakers", 0),
+            "duct_detectors": ("Duct Detectors", 0),
+            "beam_detectors": ("Beam Detectors", 0),
+            "facp": ("Fire Alarm Control Panel", 0),
+            "annunciator": ("Annunciator Panel", 0),
+            "monitor_modules": ("Monitor Modules", 0),
+            "relay_modules": ("Relay Modules", 0),
+            "door_holders": ("Magnetic Door Holders", 0),
         },
         "prompt_focus": """Focus ONLY on FIRE ALARM devices. 
 
@@ -185,13 +187,40 @@ MODULES - CHECK RISER DIAGRAMS CAREFULLY:
 - Look at EACH FLOOR on riser diagram - count modules at interface points
 - Typical: 2-4 modules per elevator, 1-2 per floor for door holders, 1-2 for fire pump/sprinkler monitoring
 
-RISER DIAGRAM ANALYSIS:
-- Riser diagrams show the SYSTEM ARCHITECTURE - critical for module counts
-- Follow lines from FACP to each floor
-- Count "ER", "MM", "RM" symbols at each connection point
-- Interface to "Elevator Equipment" = monitor + relay modules
-- Interface to "Fire Protection" = monitor modules for flow/tamper
-- Each stairwell with door holders = relay modules
+RISER DIAGRAM ANALYSIS - CRITICAL FOR ACCURATE COUNTS:
+- Riser diagrams show the SYSTEM ARCHITECTURE
+- MUST count these from riser diagram:
+
+ANNUNCIATOR (FARA):
+- Look for "FARA" or "Remote Annunciator" box - usually near FACP or at building entry
+- This is SEPARATE from FACP - count as annunciator, NOT as facp
+- Typical: 1 per building at main entrance
+
+PULL STATIONS:
+- Count pull stations at EACH stairwell on EACH floor
+- Riser shows "P" or pull station symbol at stairs
+- Formula: (number of stairs) x (number of floors) = minimum pull stations
+- Example: 2 stairs x 4 floors = 8 pull stations minimum
+
+MONITOR MODULES (MM):
+- Count at each interface point on riser
+- Elevator equipment: 1-2 MM per elevator
+- Fire pump/sprinkler: 1-2 MM for flow/tamper switches
+- HVAC interface: 1 MM per air handler with dampers
+
+RELAY MODULES (RM) / ELEVATOR RELAY (ER):
+- Count at each output interface
+- Elevator recall: 1-2 RM per elevator
+- Door holders: 1 RM per floor with fire doors
+- HVAC shutdown: 1 RM per air handler
+- "ER" symbols = Elevator Relay = count as relay_modules
+
+TYPICAL COUNTS FOR MULTI-STORY RESIDENTIAL:
+- 1 FACP
+- 1 Annunciator (FARA)
+- 8-12 pull stations (2 per floor x 4 floors)
+- 4-8 monitor modules
+- 4-8 relay modules
 
 DOOR HOLDERS:
 - Magnetic door holders keep fire doors open
@@ -208,15 +237,15 @@ If you're unsure about a symbol, count 0 rather than guessing."""
         "icon": "💧",
         "description": "Sprinkler heads, risers, valves, FDC",
         "devices": {
-            "sprinkler_heads": ("Sprinkler Heads", 85),
-            "risers": ("Risers", 1500),
-            "piv": ("PIV (Post Indicator Valve)", 2500),
-            "osny": ("OS&Y Valve", 800),
-            "fdc": ("Fire Dept Connection", 650),
-            "flow_switch": ("Flow Switch", 275),
-            "tamper_switch": ("Tamper Switch", 150),
-            "inspectors_test": ("Inspector's Test", 125),
-            "fire_pump": ("Fire Pump", 15000),
+            "sprinkler_heads": ("Sprinkler Heads", 0),
+            "risers": ("Risers", 0),
+            "piv": ("PIV (Post Indicator Valve)", 0),
+            "osny": ("OS&Y Valve", 0),
+            "fdc": ("Fire Dept Connection", 0),
+            "flow_switch": ("Flow Switch", 0),
+            "tamper_switch": ("Tamper Switch", 0),
+            "inspectors_test": ("Inspector's Test", 0),
+            "fire_pump": ("Fire Pump", 0),
         },
         "prompt_focus": """STEP 1: CHECK THE DRAWING NUMBER IN THE TITLE BLOCK (bottom right corner).
 
@@ -266,17 +295,17 @@ When in doubt, count 0."""
         "icon": "⚡",
         "description": "120VAC devices, panels, receptacles, lighting",
         "devices": {
-            "smoke_detectors_120v": ("Smoke Detectors (120VAC)", 45),
-            "co_detectors_120v": ("CO Detectors (120VAC)", 55),
-            "combo_smoke_co": ("Combo Smoke/CO (120VAC)", 65),
-            "receptacles": ("Receptacles", 25),
-            "switches": ("Switches", 20),
-            "junction_boxes": ("Junction Boxes", 15),
-            "panels": ("Electrical Panels", 1500),
-            "disconnects": ("Disconnects", 350),
-            "lighting_fixtures": ("Lighting Fixtures", 150),
-            "emergency_lights": ("Emergency Lights", 200),
-            "exit_signs": ("Exit Signs", 125),
+            "smoke_detectors_120v": ("Smoke Detectors (120VAC)", 0),
+            "co_detectors_120v": ("CO Detectors (120VAC)", 0),
+            "combo_smoke_co": ("Combo Smoke/CO (120VAC)", 0),
+            "receptacles": ("Receptacles", 0),
+            "switches": ("Switches", 0),
+            "junction_boxes": ("Junction Boxes", 0),
+            "panels": ("Electrical Panels", 0),
+            "disconnects": ("Disconnects", 0),
+            "lighting_fixtures": ("Lighting Fixtures", 0),
+            "emergency_lights": ("Emergency Lights", 0),
+            "exit_signs": ("Exit Signs", 0),
         },
         "prompt_focus": """Focus ONLY on ELECTRICAL (120VAC line voltage) devices.
 
@@ -337,17 +366,17 @@ IGNORE: Fire alarm devices (24VDC), sprinkler, security, low voltage"""
         "icon": "🔐",
         "description": "Cameras, card readers, door contacts, access control",
         "devices": {
-            "cameras": ("Security Cameras", 450),
-            "card_readers": ("Card Readers", 350),
-            "door_contacts": ("Door Contacts", 45),
-            "motion_sensors": ("Motion Sensors", 125),
-            "glass_break": ("Glass Break Sensors", 85),
-            "access_panel": ("Access Control Panel", 2500),
-            "electric_strike": ("Electric Strikes", 275),
-            "mag_locks": ("Magnetic Locks", 325),
-            "rex": ("REX (Request to Exit)", 150),
-            "keypad": ("Keypads", 225),
-            "intercom": ("Intercom Stations", 400),
+            "cameras": ("Security Cameras", 0),
+            "card_readers": ("Card Readers", 0),
+            "door_contacts": ("Door Contacts", 0),
+            "motion_sensors": ("Motion Sensors", 0),
+            "glass_break": ("Glass Break Sensors", 0),
+            "access_panel": ("Access Control Panel", 0),
+            "electric_strike": ("Electric Strikes", 0),
+            "mag_locks": ("Magnetic Locks", 0),
+            "rex": ("REX (Request to Exit)", 0),
+            "keypad": ("Keypads", 0),
+            "intercom": ("Intercom Stations", 0),
         },
         "prompt_focus": """Focus ONLY on SECURITY and ACCESS CONTROL devices.
 
@@ -424,23 +453,23 @@ Look for pages labeled "Security", "Access Control", or "S-" drawings."""
         "description": "All low voltage: fire alarm + security combined",
         "devices": {
             # Fire alarm
-            "smoke_detectors": ("Smoke Detectors", 250),
-            "heat_detectors": ("Heat Detectors", 200),
-            "pull_stations": ("Pull Stations", 150),
-            "horn_strobes": ("Horn/Strobes", 175),
-            "strobes_only": ("Strobes Only", 125),
-            "duct_detectors": ("Duct Detectors", 350),
-            "facp": ("Fire Alarm Control Panel", 3500),
-            "annunciator": ("Annunciator Panel", 1200),
-            "monitor_modules": ("Monitor Modules", 125),
-            "relay_modules": ("Relay Modules", 125),
-            "door_holders": ("Magnetic Door Holders", 85),
+            "smoke_detectors": ("Smoke Detectors", 0),
+            "heat_detectors": ("Heat Detectors", 0),
+            "pull_stations": ("Pull Stations", 0),
+            "horn_strobes": ("Horn/Strobes", 0),
+            "strobes_only": ("Strobes Only", 0),
+            "duct_detectors": ("Duct Detectors", 0),
+            "facp": ("Fire Alarm Control Panel", 0),
+            "annunciator": ("Annunciator Panel", 0),
+            "monitor_modules": ("Monitor Modules", 0),
+            "relay_modules": ("Relay Modules", 0),
+            "door_holders": ("Magnetic Door Holders", 0),
             # Security
-            "cameras": ("Security Cameras", 450),
-            "card_readers": ("Card Readers", 350),
-            "door_contacts": ("Door Contacts", 45),
-            "motion_sensors": ("Motion Sensors", 125),
-            "access_panel": ("Access Control Panel", 2500),
+            "cameras": ("Security Cameras", 0),
+            "card_readers": ("Card Readers", 0),
+            "door_contacts": ("Door Contacts", 0),
+            "motion_sensors": ("Motion Sensors", 0),
+            "access_panel": ("Access Control Panel", 0),
         },
         "prompt_focus": """Focus on ALL LOW VOLTAGE devices (Fire Alarm + Security).
 
