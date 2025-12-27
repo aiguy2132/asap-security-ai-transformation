@@ -636,12 +636,18 @@ st.markdown("""
     /* Buttons */
     .stButton > button {
         background: linear-gradient(135deg, #0ea5e9 0%, #22d3ee 100%) !important;
-        color: #0a0f1a !important;
+        color: #000000 !important;
         border: none !important;
         border-radius: 10px !important;
         padding: 0.75rem 2rem !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
         transition: all 0.2s ease !important;
+    }
+    
+    .stButton > button p,
+    .stButton > button span {
+        color: #000000 !important;
+        font-weight: 700 !important;
     }
     
     .stButton > button:hover {
