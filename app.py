@@ -534,239 +534,254 @@ DO NOT count:
 # ============================================
 st.markdown("""
 <style>
+    /* Import font */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    /* Global styles */
     .stApp {
-        background: linear-gradient(135deg, #0a1628 0%, #1a2744 50%, #0d1f3c 100%);
+        background: linear-gradient(180deg, #0a0f1a 0%, #111827 100%);
+        font-family: 'Inter', sans-serif;
     }
     
     .stApp, .stApp p, .stApp span, .stApp label, .stApp div {
-        color: #e0e0e0 !important;
+        color: #e2e8f0 !important;
     }
     
     h1, h2, h3, h4, h5, h6 {
         color: #ffffff !important;
+        font-family: 'Inter', sans-serif;
     }
     
-    /* Trade selector cards */
-    .trade-card {
-        background: rgba(22, 33, 62, 0.8);
-        border: 2px solid rgba(0, 212, 255, 0.3);
+    /* Hide Streamlit branding */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    
+    /* Sidebar styling */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0d1321 0%, #151d2e 100%);
+        border-right: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    [data-testid="stSidebar"] .stMarkdown {
+        padding: 0.5rem;
+    }
+    
+    /* Stats cards */
+    .stat-card {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(30, 41, 59, 0.4) 100%);
+        border: 1px solid rgba(148, 163, 184, 0.1);
         border-radius: 16px;
         padding: 1.5rem;
         text-align: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        margin: 0.5rem;
     }
     
-    .trade-card:hover {
-        border-color: #00d4ff;
-        transform: translateY(-4px);
-        box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #22d3ee !important;
+        margin: 0;
     }
     
-    .trade-card.selected {
-        border-color: #00d4ff;
-        background: rgba(0, 212, 255, 0.15);
+    .stat-label {
+        font-size: 0.875rem;
+        color: #94a3b8 !important;
+        margin-top: 0.25rem;
     }
     
-    .trade-icon {
-        font-size: 3rem;
+    /* Device table */
+    .device-row {
+        background: rgba(30, 41, 59, 0.5);
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        border-radius: 12px;
+        padding: 1rem;
         margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
     
-    .trade-name {
-        font-size: 1.3rem;
+    .device-name {
+        font-weight: 500;
+        color: #e2e8f0 !important;
+    }
+    
+    .device-count {
+        background: rgba(34, 211, 238, 0.1);
+        color: #22d3ee !important;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
         font-weight: 600;
-        color: #00d4ff !important;
-        margin-bottom: 0.3rem;
-    }
-    
-    .trade-desc {
-        font-size: 0.85rem;
-        color: #888 !important;
     }
     
     /* Input fields */
     .stTextInput input,
+    .stNumberInput input,
     input[type="text"],
-    input[type="password"] {
-        background: rgba(15, 52, 96, 0.95) !important;
-        color: #00d4ff !important;
-        border: 1px solid rgba(0, 212, 255, 0.4) !important;
-        border-radius: 8px !important;
+    input[type="password"],
+    input[type="number"] {
+        background: rgba(30, 41, 59, 0.8) !important;
+        color: #e2e8f0 !important;
+        border: 1px solid rgba(148, 163, 184, 0.2) !important;
+        border-radius: 10px !important;
+        padding: 0.75rem 1rem !important;
     }
     
-    .stNumberInput input {
-        background: rgba(15, 52, 96, 0.95) !important;
-        color: #00d4ff !important;
-        border: 1px solid rgba(0, 212, 255, 0.4) !important;
+    .stTextInput input:focus,
+    .stNumberInput input:focus {
+        border-color: #22d3ee !important;
+        box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.2) !important;
     }
     
-    /* Expander */
-    [data-testid="stExpander"] {
-        background: rgba(22, 33, 62, 0.95) !important;
-        border: 1px solid rgba(0, 212, 255, 0.3) !important;
+    /* Buttons */
+    .stButton > button {
+        background: linear-gradient(135deg, #0ea5e9 0%, #22d3ee 100%) !important;
+        color: #0a0f1a !important;
+        border: none !important;
+        border-radius: 10px !important;
+        padding: 0.75rem 2rem !important;
+        font-weight: 600 !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    .stButton > button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 20px rgba(34, 211, 238, 0.4) !important;
+    }
+    
+    /* Trade selector buttons */
+    .trade-btn {
+        background: rgba(30, 41, 59, 0.6) !important;
+        border: 1px solid rgba(148, 163, 184, 0.2) !important;
         border-radius: 12px !important;
+        padding: 1.25rem !important;
+        text-align: center;
+        transition: all 0.2s ease !important;
+        cursor: pointer;
     }
     
-    [data-testid="stExpander"] summary,
-    .streamlit-expanderHeader {
-        background: rgba(22, 33, 62, 0.95) !important;
-        color: #00d4ff !important;
-    }
-    
-    [data-testid="stExpander"] input {
-        background: rgba(15, 52, 96, 0.95) !important;
-        color: #00d4ff !important;
+    .trade-btn:hover {
+        border-color: #22d3ee !important;
+        background: rgba(34, 211, 238, 0.1) !important;
     }
     
     /* File uploader */
     [data-testid="stFileUploader"] {
-        background: rgba(15, 52, 96, 0.6) !important;
-        border: 2px dashed rgba(0, 212, 255, 0.4) !important;
-        border-radius: 12px !important;
-        padding: 20px !important;
-    }
-    
-    [data-testid="stFileUploader"] * {
-        color: #00d4ff !important;
-    }
-    
-    /* Trade selector buttons - AGGRESSIVE OVERRIDE */
-    .stButton > button,
-    .stButton button,
-    button[kind="secondary"],
-    [data-testid="baseButton-secondary"] {
-        background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 50%, #4f46e5 100%) !important;
-        border: none !important;
-        border-radius: 16px !important;
-        padding: 1.2rem !important;
-        min-height: 80px !important;
-        transition: all 0.3s ease !important;
-        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4) !important;
-    }
-    
-    .stButton > button:hover,
-    .stButton button:hover,
-    button[kind="secondary"]:hover,
-    [data-testid="baseButton-secondary"]:hover {
-        transform: translateY(-4px) !important;
-        box-shadow: 0 8px 30px rgba(139, 92, 246, 0.6) !important;
-        background: linear-gradient(135deg, #22d3ee 0%, #a855f7 50%, #6366f1 100%) !important;
-    }
-    
-    .stButton > button p, 
-    .stButton > button span,
-    .stButton > button div,
-    .stButton button p,
-    .stButton button span,
-    .stButton button div,
-    [data-testid="baseButton-secondary"] p,
-    [data-testid="baseButton-secondary"] span {
-        color: #000000 !important;
-        -webkit-text-fill-color: #000000 !important;
-        font-weight: 700 !important;
-        font-size: 1.1rem !important;
-        background: none !important;
-    }
-    
-    /* Primary action button (Analyze) */
-    button[kind="primary"],
-    [data-testid="baseButton-primary"] {
-        background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%) !important;
-    }
-    
-    button[kind="primary"] p, 
-    button[kind="primary"] span,
-    [data-testid="baseButton-primary"] p,
-    [data-testid="baseButton-primary"] span {
-        color: #000000 !important;
-        -webkit-text-fill-color: #000000 !important;
-        font-weight: 700 !important;
-    }
-    
-    /* Selectbox */
-    .stSelectbox > div > div {
-        background: rgba(15, 52, 96, 0.95) !important;
-        border: 1px solid rgba(0, 212, 255, 0.4) !important;
-    }
-    
-    /* Total bid box */
-    .total-bid-box {
-        background: linear-gradient(135deg, rgba(22, 33, 62, 0.9) 0%, rgba(44, 62, 114, 0.9) 100%) !important;
+        background: rgba(30, 41, 59, 0.4) !important;
+        border: 2px dashed rgba(148, 163, 184, 0.3) !important;
         border-radius: 16px !important;
         padding: 2rem !important;
-        text-align: center !important;
-        margin: 1rem 0 !important;
-        box-shadow: 0 4px 20px rgba(0, 212, 255, 0.2) !important;
+    }
+    
+    [data-testid="stFileUploader"]:hover {
+        border-color: #22d3ee !important;
+        background: rgba(34, 211, 238, 0.05) !important;
+    }
+    
+    /* Progress bar */
+    .stProgress > div > div {
+        background: linear-gradient(90deg, #0ea5e9 0%, #22d3ee 100%) !important;
+        border-radius: 10px;
+    }
+    
+    /* Expander */
+    [data-testid="stExpander"] {
+        background: rgba(30, 41, 59, 0.5) !important;
+        border: 1px solid rgba(148, 163, 184, 0.1) !important;
+        border-radius: 12px !important;
+    }
+    
+    /* Results card */
+    .results-card {
+        background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(30, 41, 59, 0.6) 100%);
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        border-radius: 20px;
+        padding: 2rem;
+        margin: 1rem 0;
+    }
+    
+    /* Total bid display */
+    .total-bid-box {
+        background: linear-gradient(135deg, rgba(34, 211, 238, 0.15) 0%, rgba(14, 165, 233, 0.15) 100%);
+        border: 1px solid rgba(34, 211, 238, 0.3);
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: center;
+        margin: 1.5rem 0;
     }
     
     .total-bid-box h2 {
-        color: #00d4ff !important;
         font-size: 3rem !important;
+        font-weight: 700 !important;
+        color: #22d3ee !important;
         margin: 0 !important;
-        text-shadow: 0 0 20px rgba(0, 212, 255, 0.5) !important;
     }
     
-    /* Markdown tables */
-    .stMarkdown table {
-        background: rgba(15, 52, 96, 0.6) !important;
-        border-radius: 8px !important;
+    /* Download buttons */
+    .stDownloadButton > button {
+        background: rgba(30, 41, 59, 0.8) !important;
+        color: #e2e8f0 !important;
+        border: 1px solid rgba(148, 163, 184, 0.2) !important;
     }
     
-    .stMarkdown th {
-        background: rgba(10, 35, 70, 0.95) !important;
-        color: #00d4ff !important;
-        padding: 12px !important;
+    .stDownloadButton > button:hover {
+        background: rgba(34, 211, 238, 0.1) !important;
+        border-color: #22d3ee !important;
     }
     
-    .stMarkdown td {
-        background: rgba(15, 52, 96, 0.8) !important;
-        color: #00d4ff !important;
-        padding: 10px 12px !important;
+    /* Divider */
+    hr {
+        border-color: rgba(148, 163, 184, 0.1) !important;
+        margin: 2rem 0 !important;
     }
     
-    /* Radio buttons for trade selection */
-    .stRadio > div {
-        display: flex !important;
-        flex-wrap: wrap !important;
-        gap: 1rem !important;
+    /* Success/warning messages */
+    .stSuccess {
+        background: rgba(34, 197, 94, 0.1) !important;
+        border: 1px solid rgba(34, 197, 94, 0.3) !important;
+        border-radius: 10px !important;
     }
     
-    .stRadio label {
-        background: rgba(22, 33, 62, 0.8) !important;
-        border: 2px solid rgba(0, 212, 255, 0.3) !important;
-        border-radius: 12px !important;
-        padding: 1rem 1.5rem !important;
-        cursor: pointer !important;
-        transition: all 0.3s ease !important;
+    .stWarning {
+        background: rgba(234, 179, 8, 0.1) !important;
+        border: 1px solid rgba(234, 179, 8, 0.3) !important;
+        border-radius: 10px !important;
     }
     
-    .stRadio label:hover {
-        border-color: #00d4ff !important;
+    /* Logo/Header area */
+    .logo-container {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 0;
+        margin-bottom: 1rem;
     }
     
-    .stRadio label[data-checked="true"] {
-        border-color: #00d4ff !important;
-        background: rgba(0, 212, 255, 0.15) !important;
+    .logo-text {
+        font-size: 1.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #22d3ee 0%, #0ea5e9 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
     
-    /* Download buttons - keep white */
-    .stDownloadButton > button,
-    .stDownloadButton button {
-        background: rgba(255, 255, 255, 0.95) !important;
-        color: #0a1628 !important;
-        border: none !important;
-        min-height: auto !important;
-        box-shadow: none !important;
+    /* Analysis status */
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
     }
     
-    .stDownloadButton > button p,
-    .stDownloadButton > button span,
-    .stDownloadButton button p,
-    .stDownloadButton button span {
-        color: #0a1628 !important;
-        -webkit-text-fill-color: #0a1628 !important;
+    .status-ready {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+    }
+    
+    .status-analyzing {
+        background: rgba(234, 179, 8, 0.2);
+        color: #eab308;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -921,12 +936,12 @@ def get_pdf_page_count(pdf_bytes: bytes) -> int:
 def main():
     # Header
     st.markdown("""
-    <h1 style='text-align: center; background: linear-gradient(135deg, #00d4ff 0%, #a855f7 100%); 
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 3rem; margin-bottom: 0;'>
-    ⚡ BidSync AI</h1>
-    <p style='text-align: center; background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 50%, #4f46e5 100%); 
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.3rem; font-weight: 600; margin-top: 0.5rem;'>
-    Agentic Bidding Software</p>
+    <div class="logo-container" style="justify-content: center; margin-bottom: 0.5rem;">
+        <span style="font-size: 2.5rem;">⚡</span>
+        <span class="logo-text" style="font-size: 2.5rem;">BidSync AI</span>
+    </div>
+    <p style='text-align: center; color: #94a3b8 !important; font-size: 1rem; margin-top: 0;'>
+    Blueprint Analysis & Device Counting</p>
     """, unsafe_allow_html=True)
     
     # ========================================
@@ -937,9 +952,8 @@ def main():
     
     if st.session_state['selected_trade'] is None:
         st.markdown("""
-        <p style='text-align: center; background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 50%, #4f46e5 100%); 
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.4rem; font-weight: 600; margin-bottom: 2rem;'>
-        Agentic Bidding Software
+        <p style='text-align: center; color: #64748b; font-size: 1rem; margin-bottom: 2rem;'>
+        Select a trade to begin analysis
         </p>
         """, unsafe_allow_html=True)
         
