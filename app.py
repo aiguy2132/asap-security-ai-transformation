@@ -645,9 +645,21 @@ st.markdown("""
     }
     
     .stButton > button p,
-    .stButton > button span {
+    .stButton > button span,
+    .stButton > button div,
+    .stButton button p,
+    .stButton button span,
+    .stButton button div,
+    [data-testid="baseButton-secondary"] p,
+    [data-testid="baseButton-secondary"] span,
+    [data-testid="stBaseButton-secondary"] p,
+    [data-testid="stBaseButton-secondary"] span {
         color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
         font-weight: 700 !important;
+        background: none !important;
+        background-clip: unset !important;
+        -webkit-background-clip: unset !important;
     }
     
     .stButton > button:hover {
